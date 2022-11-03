@@ -13,7 +13,7 @@ prepimage = @(im,vr) uint8(255*(double(im)-vr(1))/(vr(2)-vr(1)));
 prepimagei16 = @(im,vr) uint16((2^16-1)*(double(im)-vr(1))/(vr(2)-vr(1)));
 
 %% Param file
-paramfile = './example/param_files/CerebellumLocal_0.txt';
+paramfile = './example/param_files/Cerebellum_8Rings.txt';
 
 %% Read a few useful variables from the param file
 fid = fopen(paramfile);
