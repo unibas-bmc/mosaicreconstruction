@@ -104,7 +104,7 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % note: we do a ring correction here
-roi = [14900,14900];
+roi = [29650,29650];
 recos = zeros(roi(2),roi(1),nhs,'single');
 for h = 1:nhs
     % build projections using above stitch positions for given height step
