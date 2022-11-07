@@ -70,7 +70,9 @@ olpix = zeros(nrings-1,nhs);
 corpix = zeros(1,nhs);
 for h = 1:nhs
     t = readtable([stitchparamdir 'stitching_parameters_h' num2str(h) '.csv']);
-    olpix(:,h) = [t.ol_final_subpix_1,t.ol_final_subpix_2,t.ol_final_subpix_3];
+    olpix(:,h) = [t.ol_final_subpix_1,t.ol_final_subpix_2,...
+        t.ol_final_subpix_3,t.ol_final_subpix_4,t.ol_final_subpix_5,...
+        t.ol_final_subpix_6,t.ol_final_subpix_7];
     corpix(h) = t.corpix_subpix;
 end
 
