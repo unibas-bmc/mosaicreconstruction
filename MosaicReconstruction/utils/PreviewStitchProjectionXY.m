@@ -96,7 +96,10 @@ for iii = 1:nhs
     this_cor = txpos_all(iii,1);
     cor_guess(iii) = 2*round((datsize(2)/2)+(this_cor/pixsize_mm));
 end
-ystitch = round(mean(ystitch_guess,'all'));
+ystitch = 0;
+if ~isempty(ystitch_guess)
+    ystitch = round(mean(ystitch_guess,'all'));
+end
 xstitch = round(mean(xstitch_guess,'all'));
 cor = round(mean(cor_guess));
 %% 1.4 Build x-projections
