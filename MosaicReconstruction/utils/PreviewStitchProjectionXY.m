@@ -187,7 +187,7 @@ end
 % sorry it isn't the best naming convention
 stitchposy = [0,cumsum(ystitch*ones(1,nhs-1))];
 halfheight = ceil(datsize(2)+sum(ystitch*ones(1,nhs-1))); % width before stitching off-axis
-if 1 == 1
+if nhs ~= 1
 halfmask = zeros(halfheight,fullwidth,nhs);
 for r = 1:nhs
     if r == 1
@@ -207,6 +207,8 @@ for r = 1:nhs
     
     end
 end
+else
+halfmask = ones(halfheight,fullwidth,nhs);
 end
 
 rim0 = ringproj;
