@@ -31,6 +31,8 @@ h5write([name '.h5'],'/sino',sino)
 h5write([name '.h5'],'/angles',angles)
 h5write([name '.h5'],'/pixsize_mm',pixsize_mm)
 
+setenv('PATH', [getenv('PATH') ':/home/mattia/Applications/miniconda3/bin'])
+
 CMD=sprintf('python %s %s',...
     [pythonscript_fullpath],...
     [name '.h5']);
