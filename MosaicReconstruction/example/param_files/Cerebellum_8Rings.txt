@@ -42,7 +42,7 @@ zingerCorrection	1
 stripheight	32
 
 // y crop for individual height steps (useful for debugging and testing, otherwise set to 1,2048)
-ycrop	1,2048
+ycrop	897,1152
 
 // x1,x2,y1,y2 -- works like this in python [x1:-x2,y1:-y2]
 outputcrop	490,490,490,490
