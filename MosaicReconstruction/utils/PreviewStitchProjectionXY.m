@@ -239,41 +239,41 @@ sty = size(proj,1)-stitchposy(2:end);
 stx = [size(proj,2)/2-fliplr(stitchposx),size(proj,2)/2+stitchposx];
 stx = unique(stx);
 
-figure, imagesc(1:size(proj,2),1:size(proj,1),proj,[0.75,1.0]), axis equal tight, colormap(flipud(bone))
+figure, imagesc(1:size(proj,2),1:size(proj,1),proj,[0.5,1.0]), axis equal tight, colormap(flipud(bone))
 hold on
 plot(repmat(stx,[2,1]),repmat([1,size(proj,1)],[length(stx),1])','r-')
 plot(repmat([1,size(proj,2)],[length(sty),1])',repmat(sty,[2,1]),'r-')
 f = gcf; f.Position = [137.6667  161.6667  424.0000  385.3333];
-saveas(f,[figdir 'proj' num2str(projNo) '_axison_stitched_stitchpos_75to100.pdf'])
+saveas(f,[figdir 'proj' num2str(projNo) '_axison_stitched_stitchpos_50to100.pdf'])
 
-figure, imagesc(1:size(proj,2),1:size(proj,1),proj,[0.75,0.85]), axis equal tight, colormap(flipud(bone))
+figure, imagesc(1:size(proj,2),1:size(proj,1),proj,[0.5,0.8]), axis equal tight, colormap(flipud(bone))
 hold on
 plot(repmat(stx,[2,1]),repmat([1,size(proj,1)],[length(stx),1])','r-')
 plot(repmat([1,size(proj,2)],[length(sty),1])',repmat(sty,[2,1]),'r-')
 f = gcf; f.Position = [137.6667  161.6667  424.0000  385.3333];
-saveas(f,[figdir 'proj' num2str(projNo) '_axison_stitched_stitchpos_75to85.pdf'])
+saveas(f,[figdir 'proj' num2str(projNo) '_axison_stitched_stitchpos_50to80.pdf'])
 
-figure, imagesc(1:size(proj,2),1:size(proj,1),proj_b10,[0.75,1.0]), axis equal tight, colormap(flipud(bone))
-hold on
-plot(repmat(stx,[2,1]),repmat([1,size(proj,1)],[length(stx),1])','r-')
-plot(repmat([1,size(proj,2)],[length(sty),1])',repmat(sty,[2,1]),'r-')
-axis off
-f = gcf; f.Position = [137.6667  161.6667  424.0000  385.3333];
-saveas(f,[figdir 'proj' num2str(projNo) '_stitched_stitchpos_75to100.pdf'])
-
-figure, imagesc(1:size(proj,2),1:size(proj,1),proj_b10,[0.75,0.85]), axis equal tight, colormap(flipud(bone))
+figure, imagesc(1:size(proj,2),1:size(proj,1),proj_b10,[0.50,1.0]), axis equal tight, colormap(flipud(bone))
 hold on
 plot(repmat(stx,[2,1]),repmat([1,size(proj,1)],[length(stx),1])','r-')
 plot(repmat([1,size(proj,2)],[length(sty),1])',repmat(sty,[2,1]),'r-')
 axis off
 f = gcf; f.Position = [137.6667  161.6667  424.0000  385.3333];
-saveas(f,[figdir 'proj' num2str(projNo) '_stitched_stitchpos_75to85.pdf'])
+saveas(f,[figdir 'proj' num2str(projNo) '_stitched_stitchpos_50to100.pdf'])
 
-imwrite(ind2rgb(imcomplement(prepimage(proj_b10,[0.75,1.0])),bone),[figdir 'proj' num2str(projNo) '_stitched_75to100_invbone.tif']);
-imwrite(ind2rgb(imcomplement(prepimage(proj_b10,[0.75,0.85])),bone),[figdir 'proj' num2str(projNo) '_stitched_75to85_invbone.tif']);
-imwrite(imcomplement(prepimage(proj_b10,[0.75,1.0])),[figdir 'proj' num2str(projNo) '_stitched_75to100_inv.tif']);
-imwrite(imcomplement(prepimage(proj_b10,[0.75,0.85])),[figdir 'proj' num2str(projNo) '_stitched_75to85_inv.tif']);
-imwrite(prepimage(proj_b10,[0.75,1.0]),[figdir 'proj' num2str(projNo) '_stitched_75to100.tif']);
-imwrite(prepimage(proj_b10,[0.75,0.85]),[figdir 'proj' num2str(projNo) '_stitched_75to85.tif']);
+figure, imagesc(1:size(proj,2),1:size(proj,1),proj_b10,[0.5,0.8]), axis equal tight, colormap(flipud(bone))
+hold on
+plot(repmat(stx,[2,1]),repmat([1,size(proj,1)],[length(stx),1])','r-')
+plot(repmat([1,size(proj,2)],[length(sty),1])',repmat(sty,[2,1]),'r-')
+axis off
+f = gcf; f.Position = [137.6667  161.6667  424.0000  385.3333];
+saveas(f,[figdir 'proj' num2str(projNo) '_stitched_stitchpos_50to80.pdf'])
+
+imwrite(ind2rgb(imcomplement(prepimage(proj_b10,[0.50,1.0])),bone),[figdir 'proj' num2str(projNo) '_stitched_50to100_invbone.tif']);
+imwrite(ind2rgb(imcomplement(prepimage(proj_b10,[0.50,0.8])),bone),[figdir 'proj' num2str(projNo) '_stitched_50to80_invbone.tif']);
+imwrite(imcomplement(prepimage(proj_b10,[0.50,1.0])),[figdir 'proj' num2str(projNo) '_stitched_50to100_inv.tif']);
+imwrite(imcomplement(prepimage(proj_b10,[0.50,0.8])),[figdir 'proj' num2str(projNo) '_stitched_50to80_inv.tif']);
+imwrite(prepimage(proj_b10,[0.50,1.0]),[figdir 'proj' num2str(projNo) '_stitched_50to100.tif']);
+imwrite(prepimage(proj_b10,[0.50,0.80]),[figdir 'proj' num2str(projNo) '_stitched_50to80.tif']);
 end
 
