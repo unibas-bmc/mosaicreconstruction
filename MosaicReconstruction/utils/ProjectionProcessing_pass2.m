@@ -102,25 +102,29 @@ end
 rproj(abs(rproj)>0.1) = 0;
 
 % create blending mask
-blendmasky = zeros(fullheight,sx,nhs);
-for h = 1:nhs
-    if h == 1
-        blendmasky(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-1,sx);
-        tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
-    elseif h == nhs
-        blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2),:,h) = ones(datsize(2)-1,sx);
-        tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
-    else
-        blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-2,sx);
-        tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
-        tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
+if nhs == 1
+    blendmasky = ones(fullheight,sx,nhs);
+else
+    blendmasky = zeros(fullheight,sx,nhs);
+    for h = 1:nhs
+        if h == 1
+            blendmasky(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-1,sx);
+            tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
+        elseif h == nhs
+            blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2),:,h) = ones(datsize(2)-1,sx);
+            tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
+        else
+            blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-2,sx);
+            tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
+            tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
+        end
     end
+    blendmasky = blendmasky./sum(blendmasky,3);
 end
-blendmasky = blendmasky./sum(blendmasky,3);
 blendmasky = single(blendmasky);
 
 % start filtering, blending
