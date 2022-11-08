@@ -407,11 +407,15 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
 cor = 220;
-% s1x = 1848.3;
-% s2x = 1848.3;
-% s3x = 1848.3;
-%manstitchposx = [cor,s1x,s2x,s3x];
-manstitchposx = [cor];
+s1x = 1845.75;
+s2x = 1845.75;
+s3x = 1845.75;
+s4x = 1845.75;
+s5x = 1845.75;
+s6x = 1845.75;
+s7x = 1845.75;
+manstitchposx = [cor,s1x,s2x,s3x,s4x,s5x,s6x,s7x];
+
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
 %% Automatically find height step stitching positions (all height steps)
@@ -469,14 +473,19 @@ testdir = [projdir samplename filesep 'db_ringcorr_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % height and crop to use
-this_hs = 3;
+this_hs = 1;
 this_ycrop = 1024-7:1024+8;
 
-cor = 205;
-s1x = 1848.3;
-s2x = 1848.3;
-s3x = 1848.3;
-manstitchposx = [cor,s1x,s2x,s3x];
+cor = 220;
+s1x = 1845.75;
+s2x = 1845.75;
+s3x = 1845.75;
+s4x = 1845.75;
+s5x = 1845.75;
+s6x = 1845.75;
+s7x = 1845.75;
+manstitchposx = [cor,s1x,s2x,s3x,s4x,s5x,s6x,s7x];
+
 projdir = ProjectionProcessingManualEntry(paramfile,this_hs,manstitchposx,...
         this_ycrop,0,'none');
 [sinoblock] = LoadCroppedSinoblock(projdir);
@@ -487,7 +496,7 @@ test_det_dist_mm = det_dist_mm; % [mm]
 test_pixsize_mm = pixsize_mm; % [mm]
 test_lambda_mm = lambda_from_E(test_photonEnergy*1e3)*1e3; % [mm] (note: lambda_from_E takes [eV] and gives [m])
 
-cropSize = [14000,14000];
+cropSize = [29650,29650];
 
 dbrange = [0,50,100,200,500,1000];
 recos_crop = zeros(cropSize(2),cropSize(1),length(dbrange),'single');
