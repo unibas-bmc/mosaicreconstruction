@@ -550,7 +550,7 @@ reco_rc = SingleGridrecReconstruction([testdir ...
 %   - (optional) filtering
 
 % The below script pro
-manstitchposy = 1848*ones(1,7);
+manstitchposy = 0;
 projsavedir = ProjectionProcessing_pass2(paramfile,manstitchposy);
 
 %% Decide output scaling and cropping
