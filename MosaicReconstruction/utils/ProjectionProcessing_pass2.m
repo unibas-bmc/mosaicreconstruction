@@ -40,6 +40,9 @@ else
     ycrop = 1:datsize;
 end
 osy = length(ycrop); % output size y
+if osy < datsize(2)
+    datsize(2) = osy;
+end
 
 [angles,ip180] = ReadAngles([rawbasedir ringnames{1,1} filesep ringnames{1,1} '.nxs'],h5AnglePath);
 
