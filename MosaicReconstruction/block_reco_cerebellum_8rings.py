@@ -13,7 +13,7 @@ import sys
 import libtiff as tif
 
 ###### settings, should all come from parameter file
-doBlock = 1          # 1: to block of 32 slices at once, else slice-wise reconstruction
+doBlock = 0          # 1: to block of 32 slices at once, else slice-wise reconstruction
 method='gridrec'     # 'fbp' takes very long
 iterK = 2;           # number of iterations for iterative methods
 verboseExtra = 0;    # 1: more information
