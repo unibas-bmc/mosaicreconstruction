@@ -16,7 +16,7 @@ import libtiff as tif
 doBlock = 0          # 1: to block of 32 slices at once, else slice-wise reconstruction
 method='gridrec'     # 'fbp' takes very long
 iterK = 2;           # number of iterations for iterative methods
-verboseExtra = 0;    # 1: more information
+verboseExtra = 1;    # 1: more information
 
 ###### Input: Dataset to process
 #paramfile = '/media/griffin/_home1/mosaic_reconstruction/mousebrain/param_files/mouse4_perf_eth_full.txt'
