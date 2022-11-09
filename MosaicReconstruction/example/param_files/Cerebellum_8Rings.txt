@@ -52,7 +52,7 @@ outputcrop	490,490,490,490
 //	We convert floating point recos to (signed) 16-bit integers using the given scaling [low,high]->[-2^15,2^15]
 //	Best way to choose is running test recos
 // low,high -- units are absorption in 1/mm
-outputgrayscale	-0.01,0.1
+outputgrayscale	0.0,0.12
 
 // 1 or 0
 verboseMode	1
