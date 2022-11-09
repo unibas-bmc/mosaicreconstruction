@@ -86,16 +86,16 @@ projblock = np.empty((blocksize, sx, ip180), typ)
 print('Loading projections...')
 t2 = time.time()
 for p in range(ip180):
-t = tif.TIFF.open(projdir + 'proj_f_%04d' % (p+1) +  '.tif', 'r')
-bits = t.GetField('BitsPerSample')
-sample_format = t.GetField('SampleFormat')
-typ = t.get_numpy_type(bits, sample_format)
-tmp = np.empty((blocksize, width), typ)
-size = tmp.nbytes
-ReadStrip = t.ReadEncodedStrip
-elem = ReadStrip(b, tmp.ctypes.data, size)
-#tmp[np.isnan(tmp)] = 1;
-projblock[:,:,p] = tmp;
+	t = tif.TIFF.open(projdir + 'proj_f_%04d' % (p+1) +  '.tif', 'r')
+	bits = t.GetField('BitsPerSample')
+	sample_format = t.GetField('SampleFormat')
+	typ = t.get_numpy_type(bits, sample_format)
+	tmp = np.empty((blocksize, width), typ)
+	size = tmp.nbytes
+	ReadStrip = t.ReadEncodedStrip
+	elem = ReadStrip(b, tmp.ctypes.data, size)
+	#tmp[np.isnan(tmp)] = 1;
+	projblock[:,:,p] = tmp;
 
 executionTime = (time.time() - t2)
 print('read projections: %.2f sec ' % (executionTime))
