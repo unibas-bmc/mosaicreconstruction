@@ -91,6 +91,10 @@ tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
 tagstruct.Photometric = Tiff.Photometric.LinearRaw;
 tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
 
+% write angles
+h5create([writedir 'angles.h5'], '/angles', size(angles))
+h5write([writedir 'angles.h5'], '/angles', angles)
+
 % read ring correction images
 rproj = zeros(sy,sx,nhs,'single');
 for h = 1:nhs
