@@ -13,8 +13,8 @@ import sys
 import libtiff as tif
 
 #### parameter to vary ####
-slice_no = 1024
-outputgrayscale = [0., 1.]
+slice_no = 128
+outputgrayscale = [0.0, 0.12]
 
 method='gridrec'     # 'fbp' takes very long
 iterK = 2;           # number of iterations for iterative methods
