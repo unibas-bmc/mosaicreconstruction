@@ -50,6 +50,8 @@ for i in range(len(outputcrop)):
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep;
 recodir = recobasedir + samplename + os.sep + 'reco' + os.sep;
 
+os.makedirs(recodir, mode=0o755, exist_ok=True)
+
 print('Writing results to ' + recodir)    
 
 ###### 0.5 Load measurement info
@@ -58,7 +60,7 @@ angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 ip180 = angles.shape[0]
 
 T = pandas.read_excel(infofile)
-pixsize_um = T.pixsize_um[0];
+pixsize_um = 0.65 # TODO: read from par file
 pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
 
@@ -67,7 +69,7 @@ t = tif.TIFF.open(projdir + 'proj_f_' + '%04d' % (1) + '.tif')   # read informat
 sx = t.GetField("ImageWidth")
 sy = t.GetField("ImageLength")
 blocksize = t.GetField("RowsPerStrip")
-nblocks = np.int(sy/blocksize)
+nblocks = int(sy/blocksize)
 
 width = t.GetField("ImageWidth")
 height = t.GetField("ImageLength")
@@ -75,7 +77,7 @@ bits = t.GetField('BitsPerSample')
 sample_format = t.GetField('SampleFormat')
 typ = t.get_numpy_type(bits, sample_format)
 
-b = floor(slice_no / blocksize)
+b = int(slice_no / blocksize)
 print('Loading block ' + str(b+1) + '/' + str(nblocks) + '...')
 t1 = time.time()
 tyi = b*blocksize+1;   # this y initial
@@ -126,13 +128,15 @@ else:
 		num_iter=iterK)/pixsize_mm
     
 reco = np.squeeze(reco)
+# remove the padding
+reco = reco[pad_sinogram:-pad_sinogram,pad_sinogram:-pad_sinogram]
 # crop
 reco = reco[outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
 
 # write HDF5
-outfname = '%s/reco_%05d.h5' % ((recodir,tyr[iy]))
+outfname = '%sreco_%05d.h5' % ((recodir,tyr[iy]))
 fid = h5py.File(outfname, 'w')
-ds = fid.create('/volume', reco.shape, reco.dtype)
+ds = fid.create_dataset('/reco', reco.shape, dtype=reco.dtype)
 ds[()] = reco
 fid.close()
 
@@ -140,7 +144,7 @@ fid.close()
 # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
 reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
 
-outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
+outfname = '%sreco_%05d.tif' % ((recodir,tyr[iy]))
 fid = tif.TIFF.open(outfname, 'w')
 fid.write_image(reco)
 fid.close()
