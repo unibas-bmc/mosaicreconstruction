@@ -122,6 +122,14 @@ else:
 reco = np.squeeze(reco)
 # crop
 reco = reco[outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
+
+# write HDF5
+outfname = '%s/reco_%05d.h5' % ((recodir,tyr[iy]))
+fid = h5py.File(outfname, 'w')
+ds = fid.create('/volume', reco.shape, reco.dtype)
+ds[()] = reco
+fid.close()
+
 # convert to int16
 # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
 reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
