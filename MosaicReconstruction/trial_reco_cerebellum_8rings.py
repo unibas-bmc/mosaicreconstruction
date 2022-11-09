@@ -18,6 +18,7 @@ outputgrayscale = [0.0, 0.12]
 
 method='gridrec'     # 'fbp' takes very long
 iterK = 2;           # number of iterations for iterative methods
+pad_sinogram = 3000
 
 ###### Input: Dataset to process
 paramfile = './example/param_files/Cerebellum_8Rings.txt'
@@ -108,8 +109,13 @@ print('Reconstruction and writing...')
 t3 = time.time()
 iy = slice_no % blocksize
 this_sino_log = tomopy.minus_log(projblock[:,:,iy])
+del projblock
 this_sino_log = np.transpose(this_sino_log)
 this_sino_log = np.expand_dims(this_sino_log,axis=0)
+if pad_sinogram != 0:
+	this_sino_log = np.pad(this_sino_log,
+		((0,0),(0,0),(pad_sinogram,pad_sinogram)),
+		mode='edge')
 
 if method=='fbp' or method=='gridrec':
 	reco = tomopy.recon(this_sino_log, angles,
