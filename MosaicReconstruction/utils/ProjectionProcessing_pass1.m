@@ -105,16 +105,6 @@ for i = 1:nrings
 end
 clear darks flats tmp1 tmp
 %% 1.2 Flat/dark correction, gain/offset/zinger, stitching, saving
-% tiff settings ()
-tagstruct.ImageLength = osy; % y
-tagstruct.ImageWidth = fullwidth; % x
-tagstruct.BitsPerSample = 32; % single precission
-tagstruct.RowsPerStrip = stripheight; % strip size (faster loading of strips)
-tagstruct.SamplesPerPixel = 1;
-tagstruct.Compression = Tiff.Compression.None;
-tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
-tagstruct.Photometric = Tiff.Photometric.LinearRaw;
-tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
 
 % build a mask for the 0 degrees projection
 halfmask = zeros(osy,halfwidth,nrings);
@@ -265,20 +255,25 @@ parfor p = 1:ip180
     % add to mean projection
     mproj = mproj + (fullproj/ip180);
     
-    % write to tiff file
+    % write to HDF5 file
     fullproj = single(fullproj);
-    t = Tiff([writedir 'proj_uf_h' num2str(th) '_p' num2str(p,'%04d') '.tif'], 'w');
-    t.setTag(tagstruct); t.write(fullproj); t.close();
+    fullproj_filename = [writedir 'proj_uf_h' num2str(th) '_p' ...
+        num2str(p,'%04d') '.h5'];
+    h5create(fullproj_filename, '/proj', size(fullproj), ...
+        Datatype='single');
+    h5write(fullproj_filename, '/proj', fullproj);
 end
 toc
 mproj_m150 = medfilt2(mproj,[150,150]);
 rproj = -(mproj-mproj_m150);
 rproj = single(rproj); % ring profile
 mproj = single(mproj); % mean projection
-t = Tiff([writedir 'rproj_h' num2str(th) '.tif'], 'w');
-t.setTag(tagstruct); t.write(rproj); t.close();
-t = Tiff([writedir 'mproj_h' num2str(th) '.tif'], 'w');
-t.setTag(tagstruct); t.write(mproj); t.close();
+rproj_filename = [writedir 'rproj_h' num2str(th) '.h5'];
+h5create(rproj_filename, '/proj', size(rproj), Datatype='single');
+h5write(rproj_filename, '/proj', rproj);
+mproj_filename = [writedir 'mproj_h' num2str(th) '.h5'];
+h5create(mproj_filename, '/proj', size(mproj), Datatype='single');
+h5write(mproj_filename, '/proj', mproj);
 end
 %%
 end
