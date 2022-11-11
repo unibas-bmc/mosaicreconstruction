@@ -72,7 +72,6 @@ sy = f['/proj'].shape[1]
 
 typ = f['/proj'].dtype
 
-b = int(slice_no / blocksize)
 print('Loading slice ' + str(slice_no+1) + '...')
 t1 = time.time()
 
