@@ -35,6 +35,7 @@ with open(paramfile,'r') as f:
             name, valueAndMore = line.split("\t") # split it by tabs
             value, others = valueAndMore.split("\n")  # remove endline 
             infoStruct[name]=value 
+
 f.close()
 # assign variables
 samplename = infoStruct['samplename']
