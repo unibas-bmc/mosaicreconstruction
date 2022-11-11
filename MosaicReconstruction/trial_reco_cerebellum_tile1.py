@@ -13,7 +13,7 @@ import sys
 import libtiff as tif
 
 #### parameter to vary ####
-slice_no = 128
+slice_no = 1024
 outputgrayscale = [0.0, 0.12]
 
 method='gridrec'     # 'fbp' takes very long
@@ -21,7 +21,7 @@ iterK = 2;           # number of iterations for iterative methods
 pad_sinogram = 3000
 
 ###### Input: Dataset to process
-paramfile = './example/param_files/Cerebellum_8Rings.txt'
+paramfile = './example/param_files/cerebellum_tile1.txt'
 print('Using ' + paramfile)
 
 ###### 0.2 Read param file
@@ -35,6 +35,7 @@ with open(paramfile,'r') as f:
             name, valueAndMore = line.split("\t") # split it by tabs
             value, others = valueAndMore.split("\n")  # remove endline 
             infoStruct[name]=value 
+
 f.close()
 # assign variables
 samplename = infoStruct['samplename']
@@ -65,40 +66,24 @@ pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
 
 # info on projections
-t = tif.TIFF.open(projdir + 'proj_f_' + '%04d' % (1) + '.tif')   # read information
-sx = t.GetField("ImageWidth")
-sy = t.GetField("ImageLength")
-blocksize = t.GetField("RowsPerStrip")
-nblocks = int(sy/blocksize)
+f = h5py.File(projdir + 'proj_f_' + '%04d' % (1) + '.h5', 'r')   # read information
+sx = f['/proj'].shape[0]
+sy = f['/proj'].shape[1]
 
-width = t.GetField("ImageWidth")
-height = t.GetField("ImageLength")
-bits = t.GetField('BitsPerSample')
-sample_format = t.GetField('SampleFormat')
-typ = t.get_numpy_type(bits, sample_format)
+typ = f['/proj'].dtype
 
 b = int(slice_no / blocksize)
-print('Loading block ' + str(b+1) + '/' + str(nblocks) + '...')
+print('Loading slice ' + str(slice_no+1) + '...')
 t1 = time.time()
-tyi = b*blocksize+1;   # this y initial
-tyf = (b+1)*blocksize; # this y final
-tyr = range(tyi,tyf+1);  # this y range
 
 # load projection block 
-projblock = np.empty((blocksize, sx, ip180), typ)
+projblock = np.empty((1, sx, ip180), typ)
 print('Loading projections...')
 t2 = time.time()
 for p in range(ip180):
-	t = tif.TIFF.open(projdir + 'proj_f_%04d' % (p+1) +  '.tif', 'r')
-	bits = t.GetField('BitsPerSample')
-	sample_format = t.GetField('SampleFormat')
-	typ = t.get_numpy_type(bits, sample_format)
-	tmp = np.empty((blocksize, width), typ)
-	size = tmp.nbytes
-	ReadStrip = t.ReadEncodedStrip
-	elem = ReadStrip(b, tmp.ctypes.data, size)
-	#tmp[np.isnan(tmp)] = 1;
-	projblock[:,:,p] = tmp;
+	f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
+	typ = f['/proj'].dtype
+	projblock[0,:,p] = f['/proj'][:,slice_no]
 
 executionTime = (time.time() - t2)
 print('read projections: %.2f sec ' % (executionTime))
@@ -109,8 +94,7 @@ sz=projblock.shape
 
 print('Reconstruction and writing...')
 t3 = time.time()
-iy = slice_no % blocksize
-this_sino_log = tomopy.minus_log(projblock[:,:,iy])
+this_sino_log = tomopy.minus_log(projblock[:,:,slice_no])
 del projblock
 this_sino_log = np.transpose(this_sino_log)
 this_sino_log = np.expand_dims(this_sino_log,axis=0)
@@ -134,7 +118,7 @@ reco = reco[pad_sinogram:-pad_sinogram,pad_sinogram:-pad_sinogram]
 reco = reco[outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
 
 # write HDF5
-outfname = '%sreco_%05d.h5' % ((recodir,tyr[iy]))
+outfname = '%sreco_%05d.h5' % ((recodir,slice_no + 1))
 fid = h5py.File(outfname, 'w')
 ds = fid.create_dataset('/reco', reco.shape, dtype=reco.dtype)
 ds[()] = reco
@@ -144,7 +128,7 @@ fid.close()
 # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
 reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
 
-outfname = '%sreco_%05d.tif' % ((recodir,tyr[iy]))
+outfname = '%sreco_%05d.tif' % ((recodir,slice_no + 1))
 fid = tif.TIFF.open(outfname, 'w')
 fid.write_image(reco)
 fid.close()
