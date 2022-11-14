@@ -1,4 +1,4 @@
-%% Mosaic reconstruction for "065_GMB_localScans_500mA_Cu100_gap5p7_orca_10x_dist50mm_100ms"
+%% Mosaic reconstruction for "cerebellum_tile2"
 
 %% Toolboxes
 addpath(genpath('./utils'))
@@ -13,7 +13,7 @@ prepimage = @(im,vr) uint8(255*(double(im)-vr(1))/(vr(2)-vr(1)));
 prepimagei16 = @(im,vr) uint16((2^16-1)*(double(im)-vr(1))/(vr(2)-vr(1)));
 
 %% Param file
-paramfile = './example/param_files/cerebellum_tile1.txt';
+paramfile = './example/param_files/cerebellum_tile2.txt';
 
 %% Read a few useful variables from the param file
 fid = fopen(paramfile);
