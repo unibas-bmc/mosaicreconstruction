@@ -80,6 +80,7 @@ projblock = np.empty((1, sx, ip180), typ)
 print('Loading projections...')
 t2 = time.time()
 for p in range(ip180):
+	print('proj_f_{:04d}'.format(p+1))
 	f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
 	typ = f['/proj'].dtype
 	projblock[0,:,p] = f['/proj'][:,slice_no]
