@@ -1,4 +1,4 @@
-%% Mosaic reconstruction for "065_GMB_localScans_500mA_Cu100_gap5p7_orca_10x_dist50mm_100ms"
+%% Mosaic reconstruction for "cerebellum_tile1"
 
 %% Toolboxes
 addpath(genpath('./utils'))
