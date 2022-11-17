@@ -86,10 +86,10 @@ text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num
 xlabel('height step'), ylabel('estimated COR position')
 
 % manually select values to be used for all height steps
-cor = 214;
+cor = 213;
 s1x = 1845.75;
-s2x = 1846.25;
-s3x = 1845.25;
+s2x = 1846.0;
+s3x = 1845.75;
 manstitchposx = [cor,s1x,s2x,s3x];
 
 % loop over heights, process projections for ycrop, reconstruct
