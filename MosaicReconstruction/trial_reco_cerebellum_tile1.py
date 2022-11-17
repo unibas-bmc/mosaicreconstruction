@@ -94,8 +94,7 @@ sz=projblock.shape
 
 print('Reconstruction and writing...')
 t3 = time.time()
-this_sino_log = tomopy.minus_log(projblock[:,:,slice_no])
-del projblock
+this_sino_log = tomopy.minus_log(projblock[:,:,0])
 this_sino_log = np.transpose(this_sino_log)
 this_sino_log = np.expand_dims(this_sino_log,axis=0)
 if pad_sinogram != 0:
