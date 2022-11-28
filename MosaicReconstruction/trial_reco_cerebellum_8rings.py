@@ -11,6 +11,7 @@ import pandas
 import sys
 
 import libtiff as tif
+from skimage.transform import downscale_local_mean
 
 #### parameter to vary ####
 slice_no = 128
@@ -122,9 +123,14 @@ ds = fid.create_dataset('reco', reco.shape, dtype=reco.dtype)
 ds[()] = reco
 fid.close()
 
+# bin 9x9
+# Caveat: might need to readjust greyvalues
+# reco = downscale_local_mean(reco, 9)
+
 # convert to int16
-# reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
-reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
+eps = 1.6e-5 # chosen such that all values lie between 1 and 65534 (for uint16)
+reco = np.uint16((2**16*np.maximum(np.minimum((downscaled-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0]), 1.-eps), eps)))
+# reco = np.int16((2**16*np.maximum(np.minimum((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0]), 1.-eps), eps))-2**15)
 
 outfname = '%sreco_%05d.tif' % ((recodir,slice_no+1))
 fid = tif.TIFF.open(outfname, 'w')
