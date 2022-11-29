@@ -51,6 +51,7 @@ for i in range(len(outputgrayscale)):
     outputgrayscale[i] = float(outputgrayscale[i])
 blocksize = int(infoStruct['stripheight'])
 ncore = int(infoStruct['ncore'])
+pixsize_um = float(infoStruct['pixsize_um'])
 
 ###### 0.4 Set up directories
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep
@@ -64,7 +65,6 @@ angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 ip180 = angles.shape[0]
 
 T = pandas.read_excel(infofile)
-pixsize_um = T.pixsize_um[0]
 pixsize = pixsize_um*1e-6       # [m]
 pixsize_mm = pixsize_um*1e-3
 
