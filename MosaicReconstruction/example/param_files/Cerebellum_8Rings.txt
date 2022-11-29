@@ -56,3 +56,6 @@ outputgrayscale	0.0,0.12
 
 // 1 or 0
 verboseMode	1
+
+// number of CPU threads to use for tomopy
+ncore	12

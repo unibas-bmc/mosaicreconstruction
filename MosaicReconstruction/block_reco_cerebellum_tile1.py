@@ -49,6 +49,7 @@ outputgrayscale = infoStruct['outputgrayscale'].split(",")
 for i in range(len(outputgrayscale)):
     outputgrayscale[i] = float(outputgrayscale[i])
 blocksize = int(infoStruct['stripheight'])
+ncore = int(infoStruct['ncore'])
 
 ###### 0.4 Set up directories
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep;
