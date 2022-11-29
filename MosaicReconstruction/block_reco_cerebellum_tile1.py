@@ -1,14 +1,14 @@
 # Reconstruction of stitched projections
 
-#import code       # for debugging, breakpoint with code.interact(local=locals())
-import tomopy
-import pylab
+#import code       # for debugging, breakpoint with
+                   # code.interact(local=locals())
 import time
+import os
+import sys
+import tomopy
 import h5py
 import numpy as np
-import os
 import pandas
-import sys
 
 import libtiff as tif
 
@@ -33,8 +33,8 @@ with open(paramfile,'r') as f:
         if len(allSplit)==2:
             # expecting two values with a tab separated
             name, valueAndMore = line.split("\t") # split it by tabs
-            value, others = valueAndMore.split("\n")  # remove endline 
-            infoStruct[name]=value 
+            value, others = valueAndMore.split("\n")  # remove endline
+            infoStruct[name]=value
 
 f.close()
 # assign variables
@@ -56,7 +56,7 @@ ncore = int(infoStruct['ncore'])
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep
 recodir = recobasedir + samplename + os.sep + 'reco' + os.sep
 
-print('Writing results to ' + recodir)    
+print('Writing results to ' + recodir)
 
 ###### 0.5 Load measurement info
 f = h5py.File(projdir + 'angles.h5','r')
@@ -77,7 +77,7 @@ nblocks = np.int(sy/blocksize)
 width = sx
 height = sy
 typ = f['/proj'].dtype
-                
+
 ###### 1.1 loop over y, load singogram, run reco, output reconstruction
 for b in range(nblocks):
     print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
@@ -85,23 +85,23 @@ for b in range(nblocks):
     tyi = b*blocksize+1    # this y initial (indices 1 based)
     tyf = (b+1)*blocksize  # this y final
     tyr = range(tyi,tyf+1)   # this y range
-    
-    # load projection block 
+
+    # load projection block
     projblock = np.empty((blocksize, sx, ip180), typ)
     print('Loading projections...')
     t2 = time.time()
     for p in range(ip180):
-	f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
-	typ = f['/proj'].dtype
+        f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
+        typ = f['/proj'].dtype
         projblock[:,:,p] = f['/proj'][:,tyi-1:tyf].T
-    
+
     executionTime = (time.time() - t2)
     print('read projections: %.2f sec ' % (executionTime))
 
     # reshape into sinogram stack
     projblock = np.transpose(projblock,(1,2,0))
     sz=projblock.shape
-    
+
     print('Reconstruction and writing...')
     t3 = time.time()
     if doBlock:
@@ -125,7 +125,7 @@ for b in range(nblocks):
         #     /(outputgrayscale[1]-outputgrayscale[0])))
         reco = np.int16((2**16*((reco-outputgrayscale[0])
             /(outputgrayscale[1]-outputgrayscale[0])))-2**15)
-        
+
         for iy in range(len(tyr)):
             outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
             fid = tif.TIFF.open(outfname, 'w')
@@ -136,7 +136,7 @@ for b in range(nblocks):
             this_sino_log = tomopy.minus_log(projblock[:,:,iy])
             this_sino_log = np.transpose(this_sino_log)
             this_sino_log = np.expand_dims(this_sino_log,axis=0)
-    
+
             if method=='fbp' or method=='gridrec':
                 reco = tomopy.recon(this_sino_log, angles,
                 sinogram_order=True,algorithm=method)/pixsize_mm
@@ -144,7 +144,7 @@ for b in range(nblocks):
                 reco = tomopy.recon(this_sino_log, angles,
                     sinogram_order=True, algorithm=method,
                     num_iter=iterK)/pixsize_mm
-            
+
             reco = np.squeeze(reco)
             # crop
             reco = reco[outputcrop[2]:sz[0]-outputcrop[3],
@@ -162,8 +162,8 @@ for b in range(nblocks):
 
     executionTime = (time.time() - t3)
     print('reconstruction: %.2f sec ' % (executionTime))
-    
+
     executionTime = (time.time() - t1)
     print('total time: %.2f sec ' % (executionTime))
 
-    
+
