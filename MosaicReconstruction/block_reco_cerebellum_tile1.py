@@ -66,23 +66,21 @@ pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
 
 # info on projections
-t = tif.TIFF.open(projdir + 'proj_f_' + '%04d' % (1) + '.tif')   # read information
-sx = t.GetField("ImageWidth")
-sy = t.GetField("ImageLength")
-blocksize = t.GetField("RowsPerStrip")
+f = h5py.File(projdir + 'proj_f_' + '%04d' % (1) + '.h5', 'r')   # read information
+sx = f['/proj'].shape[0]
+sy = f['/proj'].shape[1]
+blocksize = 32
 nblocks = np.int(sy/blocksize)
 
-width = t.GetField("ImageWidth")
-height = t.GetField("ImageLength")
-bits = t.GetField('BitsPerSample')
-sample_format = t.GetField('SampleFormat')
-typ = t.get_numpy_type(bits, sample_format)
+width = sx
+height = sy
+typ = f['/proj'].dtype
                 
 ###### 1.1 loop over y, load singogram, run reco, output reconstruction
 for b in range(nblocks):
     print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
     t1 = time.time()
-    tyi = b*blocksize+1;   # this y initial
+    tyi = b*blocksize+1;   # this y initial (indices 1 based)
     tyf = (b+1)*blocksize; # this y final
     tyr = range(tyi,tyf+1);  # this y range
     
@@ -91,16 +89,9 @@ for b in range(nblocks):
     print('Loading projections...')
     t2 = time.time()
     for p in range(ip180):
-        t = tif.TIFF.open(projdir + 'proj_f_%04d' % (p+1) +  '.tif', 'r')
-        bits = t.GetField('BitsPerSample')
-        sample_format = t.GetField('SampleFormat')
-        typ = t.get_numpy_type(bits, sample_format)
-        tmp = np.empty((blocksize, width), typ)
-        size = tmp.nbytes
-        ReadStrip = t.ReadEncodedStrip
-        elem = ReadStrip(b, tmp.ctypes.data, size)
-        #tmp[np.isnan(tmp)] = 1;
-        projblock[:,:,p] = tmp;
+	f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
+	typ = f['/proj'].dtype
+        projblock[:,:,p] = f['/proj'][:,tyi-1:tyf].T;
     
     executionTime = (time.time() - t2)
     print('read projections: %.2f sec ' % (executionTime))
