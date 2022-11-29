@@ -59,3 +59,6 @@ verboseMode	1
 
 // number of CPU threads to use for tomopy
 ncore	12
+
+// pixel size in um
+pixsize_um	0.65
