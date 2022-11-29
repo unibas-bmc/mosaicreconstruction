@@ -19,6 +19,7 @@ doBlock = False         # True: to block of 32 slices at once,
 method='gridrec'        # 'fbp' takes very long
 iterK = 2               # number of iterations for iterative methods
 verboseExtra = True     # True: more information
+pad_sinogram = 3000	# pad sinogram on both sides with n pixels
 
 ###### Input: Dataset to process
 paramfile = sys.argv[1]
@@ -108,6 +109,11 @@ for b in range(nblocks):
         # do strip at once
         this_sino_log = tomopy.minus_log(projblock, ncore=ncore)
         this_sino_log = np.transpose(this_sino_log,(2,1,0))
+        if pad_sinogram != 0:
+            this_sino_log = np.pad(this_sino_log,
+                ((0,0),(0,0),(pad_sinogram,pad_sinogram)),
+                mode='edge')
+
         if method=='fbp' or method=='gridrec':
             reco = tomopy.recon(this_sino_log, angles,
                 sinogram_order=True, algorithm=method,
@@ -117,6 +123,10 @@ for b in range(nblocks):
                 sinogram_order=True, algorithm=method,
                 num_iter=iterK, ncore=ncore)/pixsize_mm
 
+        # remove the padding
+        if pad_sinogram != 0:
+            reco = reco[:,pad_sinogram:-pad_sinogram,
+                pad_sinogram:-pad_sinogram]
         # crop
         reco = reco[:,outputcrop[2]:sz[0]-outputcrop[3],
             outputcrop[0]:sz[0]-outputcrop[1]]
@@ -136,6 +146,10 @@ for b in range(nblocks):
             this_sino_log = tomopy.minus_log(projblock[:,:,iy])
             this_sino_log = np.transpose(this_sino_log)
             this_sino_log = np.expand_dims(this_sino_log,axis=0)
+            if pad_sinogram != 0:
+                this_sino_log = np.pad(this_sino_log,
+                    ((0,0),(0,0),(pad_sinogram,pad_sinogram)),
+                    mode='edge')
 
             if method=='fbp' or method=='gridrec':
                 reco = tomopy.recon(this_sino_log, angles,
@@ -145,6 +159,10 @@ for b in range(nblocks):
                     sinogram_order=True, algorithm=method,
                     num_iter=iterK)/pixsize_mm
 
+            # remove the padding
+            if pad_sinogram != 0:
+                reco = reco[:,pad_sinogram:-pad_sinogram,
+                    pad_sinogram:-pad_sinogram]
             reco = np.squeeze(reco)
             # crop
             reco = reco[outputcrop[2]:sz[0]-outputcrop[3],
