@@ -48,6 +48,7 @@ for i in range(len(outputcrop)):
 outputgrayscale = infoStruct['outputgrayscale'].split(",")
 for i in range(len(outputgrayscale)):
     outputgrayscale[i] = float(outputgrayscale[i])
+blocksize = int(infoStruct['stripheight'])
 
 ###### 0.4 Set up directories
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep;
@@ -69,7 +70,6 @@ pixsize_mm = pixsize_um*1e-3;
 f = h5py.File(projdir + 'proj_f_' + '%04d' % (1) + '.h5', 'r')   # read information
 sx = f['/proj'].shape[0]
 sy = f['/proj'].shape[1]
-blocksize = 32
 nblocks = np.int(sy/blocksize)
 
 width = sx
