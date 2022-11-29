@@ -17,8 +17,8 @@ import libtiff as tif
 doBlock = False         # True: to block of 32 slices at once,
                         # else slice-wise reconstruction
 method='gridrec'        # 'fbp' takes very long
-iterK = 2;              # number of iterations for iterative methods
-verboseExtra = True;    # True: more information
+iterK = 2               # number of iterations for iterative methods
+verboseExtra = True     # True: more information
 
 ###### Input: Dataset to process
 paramfile = sys.argv[1]
@@ -53,8 +53,8 @@ blocksize = int(infoStruct['stripheight'])
 ncore = int(infoStruct['ncore'])
 
 ###### 0.4 Set up directories
-projdir = projbasedir + samplename + os.sep + 'proj' + os.sep;
-recodir = recobasedir + samplename + os.sep + 'reco' + os.sep;
+projdir = projbasedir + samplename + os.sep + 'proj' + os.sep
+recodir = recobasedir + samplename + os.sep + 'reco' + os.sep
 
 print('Writing results to ' + recodir)    
 
@@ -64,9 +64,9 @@ angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 ip180 = angles.shape[0]
 
 T = pandas.read_excel(infofile)
-pixsize_um = T.pixsize_um[0];
-pixsize = pixsize_um*1e-6;      # [m]
-pixsize_mm = pixsize_um*1e-3;
+pixsize_um = T.pixsize_um[0]
+pixsize = pixsize_um*1e-6       # [m]
+pixsize_mm = pixsize_um*1e-3
 
 # info on projections
 f = h5py.File(projdir + 'proj_f_' + '%04d' % (1) + '.h5', 'r')
@@ -82,9 +82,9 @@ typ = f['/proj'].dtype
 for b in range(nblocks):
     print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
     t1 = time.time()
-    tyi = b*blocksize+1;   # this y initial (indices 1 based)
-    tyf = (b+1)*blocksize; # this y final
-    tyr = range(tyi,tyf+1);  # this y range
+    tyi = b*blocksize+1    # this y initial (indices 1 based)
+    tyf = (b+1)*blocksize  # this y final
+    tyr = range(tyi,tyf+1)   # this y range
     
     # load projection block 
     projblock = np.empty((blocksize, sx, ip180), typ)
@@ -93,13 +93,13 @@ for b in range(nblocks):
     for p in range(ip180):
 	f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
 	typ = f['/proj'].dtype
-        projblock[:,:,p] = f['/proj'][:,tyi-1:tyf].T;
+        projblock[:,:,p] = f['/proj'][:,tyi-1:tyf].T
     
     executionTime = (time.time() - t2)
     print('read projections: %.2f sec ' % (executionTime))
 
     # reshape into sinogram stack
-    projblock = np.transpose(projblock,(1,2,0));
+    projblock = np.transpose(projblock,(1,2,0))
     sz=projblock.shape
     
     print('Reconstruction and writing...')
@@ -119,12 +119,12 @@ for b in range(nblocks):
 
         # crop
         reco = reco[:,outputcrop[2]:sz[0]-outputcrop[3],
-            outputcrop[0]:sz[0]-outputcrop[1]];
+            outputcrop[0]:sz[0]-outputcrop[1]]
         # convert to uint16
         # reco = np.uint16(2**16*((reco-outputgrayscale[0])
-        #     /(outputgrayscale[1]-outputgrayscale[0])));
+        #     /(outputgrayscale[1]-outputgrayscale[0])))
         reco = np.int16((2**16*((reco-outputgrayscale[0])
-            /(outputgrayscale[1]-outputgrayscale[0])))-2**15);
+            /(outputgrayscale[1]-outputgrayscale[0])))-2**15)
         
         for iy in range(len(tyr)):
             outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
@@ -148,12 +148,12 @@ for b in range(nblocks):
             reco = np.squeeze(reco)
             # crop
             reco = reco[outputcrop[2]:sz[0]-outputcrop[3],
-                outputcrop[0]:sz[0]-outputcrop[1]];
+                outputcrop[0]:sz[0]-outputcrop[1]]
             # convert to int16
             # reco = np.uint16(2**16*((reco-outputgrayscale[0])
-            #     /(outputgrayscale[1]-outputgrayscale[0])));
+            #     /(outputgrayscale[1]-outputgrayscale[0])))
             reco = np.int16((2**16*((reco-outputgrayscale[0])
-                /(outputgrayscale[1]-outputgrayscale[0])))-2**15);
+                /(outputgrayscale[1]-outputgrayscale[0])))-2**15)
 
             outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
             fid = tif.TIFF.open(outfname, 'w')
