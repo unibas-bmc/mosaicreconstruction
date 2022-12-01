@@ -19,11 +19,11 @@ h5AnglePath	/flyscan_0003/scan_data/tomo1Rz1
 // Paths for writing intermediate and final outputs:
 // 	Note: a sub-directory will be made using the samplename field
 // path for flat/dark corrected, stitched projections
-projpath	/home/mattia/data/anatomix_cerebellum/
+projpath	/mnt/data/anatomix_cerebellum/
 // path for final projections (flat/dark corrected, stitched, filtered, ring corrected)
-projpath2	/home/mattia/data/anatomix_cerebellum/
+projpath2	/mnt/data/anatomix_cerebellum/
 // reco will go in a sub-directory samplename/reco/
-recopath	/home/mattia/data/anatomix_cerebellum/
+recopath	/mnt/data/anatomix_cerebellum/
 
 // Filtering
 // options are "paganin", "gauss", or "none"
