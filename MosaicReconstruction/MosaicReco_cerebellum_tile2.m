@@ -131,7 +131,7 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 3;
+this_hs = 1;
 this_ycrop = 1024-7:1024+8;
 readdir = ProjectionProcessingManualOverlap(paramfile,this_hs,this_ycrop);
 [projvol,mprojvol] = LoadProjectionsManualOverlap(paramfile,this_hs);
@@ -145,7 +145,7 @@ for i1 = 1:size(projvol,4)
 end
 
 % % check center of rotation
-corRange = 205-4:0.5:205+4;
+corRange = 213-4:0.5:213+4;
 % note: motor position would be cor_guess, found position would be cor_subpix
 padSize = 2000;
 cropSize = [3000,3000];
@@ -182,7 +182,7 @@ figure, imshow3D(recos_cor,prctile(recos_cor,[1,99],'all')')
 
 % % check stitching positions of each ring
 % % Ring 1
-this_cor = 205.0;
+this_cor = 213.0;
 
 olpix1_range = 1848.3-5:1848.3+5;
 this_nrings = 2;
@@ -277,11 +277,11 @@ hold on
 rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
-% % Tweak any
-cor_range = 205.0;
-s1_range = 1848.3;
-s2_range = 1848.3;
-s3_range = 1848.3-5:1848.3+5;
+%% Tweak any
+cor_range = 213.0;
+s1_range = 1845.75;
+s2_range = 1846.0;
+s3_range = 1845.75-2:1845.75+2;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
