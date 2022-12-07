@@ -469,10 +469,10 @@ if not(isfolder(testdir)); mkdir(testdir); end
 this_hs = 1;
 this_ycrop = 1024-7:1024+8;
 
-cor = 214;
-s1x = 1845.75;
-s2x = 1846.25;
-s3x = 1845.25;
+cor = 214.5;
+s1x = 1846.;
+s2x = 1845.75;
+s3x = 1845.75;
 manstitchposx = [cor,s1x,s2x,s3x];
 
 projdir = ProjectionProcessingManualEntry(paramfile,this_hs,manstitchposx,...
