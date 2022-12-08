@@ -65,7 +65,7 @@ f = h5py.File(projdir + 'angles.h5','r')
 angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 ip180 = angles.shape[0]
 
-T = pandas.read_excel(infofile)
+T = pandas.read_csv(infofile)
 pixsize = pixsize_um*1e-6       # [m]
 pixsize_mm = pixsize_um*1e-3
 
