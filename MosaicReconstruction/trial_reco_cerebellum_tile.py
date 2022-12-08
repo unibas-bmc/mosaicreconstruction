@@ -21,7 +21,7 @@ iterK = 2;           # number of iterations for iterative methods
 pad_sinogram = 3000
 
 ###### Input: Dataset to process
-paramfile = './example/param_files/cerebellum_tile1.txt'
+paramfile = './example/param_files/cerebellum_tile2.txt'
 print('Using ' + paramfile)
 
 ###### 0.2 Read param file
@@ -60,7 +60,7 @@ f = h5py.File(projdir + 'angles.h5','r')
 angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 ip180 = angles.shape[0]
 
-T = pandas.read_excel(infofile)
+T = pandas.read_csv(infofile)
 pixsize_um = 0.65 # TODO: read from par file
 pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
