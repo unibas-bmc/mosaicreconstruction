@@ -3,7 +3,7 @@ echo "Block reconstruction for anatomix cerebellum tile #2"
 echo -n "Started: "
 date
 
-time -v python block_reco_cerebellum_tile.py
+/usr/bin/time -v python block_reco_cerebellum_tile.py
 
 echo -n "Finished: "
 date
