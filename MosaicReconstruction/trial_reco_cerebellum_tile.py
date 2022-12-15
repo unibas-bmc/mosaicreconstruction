@@ -43,6 +43,7 @@ infofile = infoStruct['infofile']
 projbasedir = infoStruct['projpath2']
 recobasedir = infoStruct['recopath']
 stripheight = float(infoStruct['stripheight'])
+pixsize_um = float(infoStruct['pixsize_um'])
 outputcrop = infoStruct['outputcrop'].split(",")
 for i in range(len(outputcrop)):
     outputcrop[i] = int(outputcrop[i])
@@ -61,7 +62,6 @@ angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 ip180 = angles.shape[0]
 
 T = pandas.read_csv(infofile)
-pixsize_um = 0.65 # TODO: read from par file
 pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
 
