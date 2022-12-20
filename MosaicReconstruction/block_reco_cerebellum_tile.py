@@ -11,6 +11,7 @@ import numpy as np
 import pandas
 
 import libtiff as tif
+import threading
 
 
 ###### settings, should all come from parameter file
@@ -79,26 +80,52 @@ width = sx
 height = sy
 typ = f['/proj'].dtype
 
-###### 1.1 loop over y, load singogram, run reco, output reconstruction
-for b in range(nblocks):
-    print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
-    t1 = time.time()
+def load_projection_block(projdir, b, blocksize, sx, ip180, typ):
     tyi = b*blocksize+1    # this y initial (indices 1 based)
     tyf = (b+1)*blocksize  # this y final
-    tyr = range(tyi,tyf+1)   # this y range
-
-    # load projection block
     projblock = np.empty((blocksize, sx, ip180), typ)
     print('Loading projections...')
     t2 = time.time()
     for p in range(ip180):
         f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
-        typ = f['/proj'].dtype
         projblock[:,:,p] = f['/proj'][:,tyi-1:tyf].T
 
     executionTime = (time.time() - t2)
     print('read projections: %.2f sec ' % (executionTime))
+    return projblock
 
+class LoadBlockThread(threading.Thread):
+    def __init__(self, *args):
+        self.args = args
+        self.projblock = None
+        super(LoadBlockThread, self).__init__()
+    def run(self):
+        self.projblock = load_projection_block(*self.args)
+
+print('Loading block 1/' + str(nblocks) + '...')
+
+load_block_thread = LoadBlockThread(projdir, 0, blocksize,
+    sx, ip180, typ)
+load_block_thread.start()
+
+###### 1.1 loop over y, load singogram, run reco, output reconstruction
+for b in range(nblocks):
+
+    tyi = b*blocksize+1    # this y initial (indices 1 based)
+    tyf = (b+1)*blocksize  # this y final
+    tyr = range(tyi,tyf+1)   # this y range
+
+    # retrieve projection block
+    load_block_thread.join()
+    projblock = load_block_thread.projblock
+
+    # load next projection block
+    if b + 1 < nblocks:
+        load_block_thread = LoadBlockThread(projdir, b + 1, blocksize,
+            sx, ip180, typ)
+        load_block_thread.start()
+
+    print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
     # reshape into sinogram stack
     projblock = np.transpose(projblock,(1,2,0))
     sz=projblock.shape
@@ -180,8 +207,3 @@ for b in range(nblocks):
 
     executionTime = (time.time() - t3)
     print('reconstruction: %.2f sec ' % (executionTime))
-
-    executionTime = (time.time() - t1)
-    print('total time: %.2f sec ' % (executionTime))
-
-
