@@ -48,9 +48,11 @@ stripheight = float(infoStruct['stripheight'])
 outputcrop = infoStruct['outputcrop'].split(",")
 for i in range(len(outputcrop)):
     outputcrop[i] = int(outputcrop[i])
+
 outputgrayscale = infoStruct['outputgrayscale'].split(",")
 for i in range(len(outputgrayscale)):
     outputgrayscale[i] = float(outputgrayscale[i])
+
 blocksize = int(infoStruct['stripheight'])
 ncore = int(infoStruct['ncore'])
 pixsize_um = float(infoStruct['pixsize_um'])
