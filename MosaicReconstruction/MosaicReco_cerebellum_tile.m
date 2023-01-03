@@ -3,6 +3,7 @@
 %% 1.   Preparation
 
 %% 1.1. Toolboxes
+cd /home/mattia/Documents/Cerebellum22/MosaicReconstruction/
 addpath(genpath('./utils'))
 
 %% 1.2. Useful functions
