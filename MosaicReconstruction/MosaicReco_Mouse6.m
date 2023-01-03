@@ -84,12 +84,23 @@ plot(a.XLim,[1,1]*nanmedian(corpix),'r:','LineWidth',2)
 text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num2str(nanmedian(corpix))])
 xlabel('height step'), ylabel('estimated COR position')
 
-% manually select values to be used for all height steps
-cor = 205;
-s1x = 1848.3;
-s2x = 1848.3;
-s3x = 1848.3;
-manstitchposx = [cor,s1x,s2x,s3x];
+%  manually select values to be used for all height steps
+% cor = 205;
+% s1x = 1848.3;
+% s2x = 1848.3;
+% s3x = 1848.3;
+% manstitchpos = [cor,s1x,s2x,s3x];
+autostitchpos = [corpix', olpix'];
+manstitchpos = [
+        207.6    1848.3    1844.6    1848.3;  % 1
+        205.9    1848.3    1848.3    1848.3;  % 2
+        205.3    1848.6    1848.6    1847.7;  % 3
+        205.4    1848.1    1848.6    1847.8;  % 4
+        205.0    1848.3    1848.3    1848.3;  % 5
+        205.0    1848.5    1846.0    1847.6;  % 6
+        203.6    1848.3    1848.3    1848.3;  % 7
+        204.6    1848.3    1848.3    1848.3;  % 8
+    ];
 
 % loop over heights, process projections for ycrop, reconstruct
 ycrop = 1017:1032;
@@ -102,8 +113,9 @@ roi = [14900,14900];
 recos = zeros(roi(2),roi(1),nhs,'single');
 for h = 1:nhs
     % build projections using above stitch positions for given height step
-    projdir = ProjectionProcessingManualEntry(paramfile,h,[cor,s1x,s2x,s3x]...
-        ,ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
+    projdir = ProjectionProcessingManualEntry(paramfile,h,...
+        manstitchpos(h,:),...
+        ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
         'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
     [sinoblock] = LoadCroppedSinoblock(projdir);
     % ring correction:
@@ -130,7 +142,7 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 3;
+this_hs = 1;
 this_ycrop = 1024-7:1024+8;
 readdir = ProjectionProcessingManualOverlap(paramfile,this_hs,this_ycrop);
 [projvol,mprojvol] = LoadProjectionsManualOverlap(paramfile,this_hs);
@@ -144,7 +156,7 @@ for i1 = 1:size(projvol,4)
 end
 
 % % check center of rotation
-corRange = 205-4:0.5:205+4;
+corRange = 205.9-8:205.9+8;
 % note: motor position would be cor_guess, found position would be cor_subpix
 padSize = 2000;
 cropSize = [3000,3000];
@@ -179,11 +191,11 @@ for i1 = 1:length(corRange)
 end
 figure, imshow3D(recos_cor,prctile(recos_cor,[1,99],'all')')
 
-% % check stitching positions of each ring
+%% check stitching positions of each ring
 % % Ring 1
-this_cor = 205.0;
+this_cor = 205.9;
 
-olpix1_range = 1848.3-5:1848.3+5;
+olpix1_range = 1850.4-5:1850.4+5;
 this_nrings = 2;
 
 padSize = 750;
@@ -276,11 +288,11 @@ hold on
 rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
-% % Tweak any
-cor_range = 205.0;
-s1_range = 1848.3;
+%% Tweak any
+cor_range = 205.9;
+s1_range = 1848.3-8:1848.3+8;
 s2_range = 1848.3;
-s3_range = 1848.3-5:1848.3+5;
+s3_range = 1848.3;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
@@ -400,11 +412,16 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-cor = 205;
-s1x = 1848.3;
-s2x = 1848.3;
-s3x = 1848.3;
-manstitchposx = [cor,s1x,s2x,s3x];
+manstitchposx = [
+        207.6    1848.3    1844.6    1848.3;  % 1
+        205.9    1848.3    1848.3    1848.3;  % 2
+        205.3    1848.6    1848.6    1847.7;  % 3
+        205.4    1848.1    1848.6    1847.8;  % 4
+        205.0    1848.3    1848.3    1848.3;  % 5
+        205.0    1848.5    1846.0    1847.6;  % 6
+        203.6    1848.3    1848.3    1848.3;  % 7
+        204.6    1848.3    1848.3    1848.3;  % 8
+    ];
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
 %% Automatically find height step stitching positions (all height steps)
@@ -419,6 +436,13 @@ projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 % you go in the y overlap finder
 [writedir] = OverlapFinderY(paramfile);
 
+%% Check height step stitching positions in some projections
+
+manstitchposy = [1835,1843,1843,1847,1847,1848,1839];
+proj_nr = 1:500:4001;
+
+projsavedir = y_stitching_check_proj(paramfile,manstitchposy,proj_nr);
+
 %% Check height step stitching positions manually
 % % Requires ProjectionProcessing_pass1 has been run for hs in question
 % Note: this section does not quite work yet, it should be adjusted
@@ -431,9 +455,9 @@ if not(isfolder(testdir)); mkdir(testdir); end
 hs = 1; % 1 is 1-2, 2 is 2-3, etc.
 
 % stitch position for this overlap
-manstitchposy = 1848.3;
+manstitchposy = 1835.25;
 ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16) 
-ycrop2 = 1833:1848; % region above overlap (length 16)
+ycrop2 = 1820:1835; % region above overlap (length 16)
 % note: this is quite time consuming to run:
 projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
 
