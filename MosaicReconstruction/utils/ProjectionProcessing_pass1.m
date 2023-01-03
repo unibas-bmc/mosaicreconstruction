@@ -79,16 +79,26 @@ if not(isfolder([basedir])); mkdir([basedir]); end
 % directory for writing projections:
 writedir = [basedir 'stitched_proj_filtered' filesep];
 if not(isfolder(writedir)); mkdir(writedir); end
-%% 0.6 Overlap positions (we will use same for all heights -- I checked this was okay)
+%% 0.6 Overlap positions
+%% If manstitchpos has size [1, nrings], take the same stitching positions
+%% for all height steps, otherwise use manstitchpos(h,:) for height step h.
 % tmpdir = [procdir 'parameters' filesep];
 % load([tmpdir 'stitching_parameters.mat'],'ol_final_subpix','corpix_subpix','fullwidth','stitchpos','halfwidth')
-corpix_subpix = manstitchpos(1);
-ol_final_subpix = manstitchpos(2:end);
-stitchpos = [0,cumsum(ol_final_subpix)];
-halfwidth = ceil(datsize(2)+sum(ol_final_subpix));
-fullwidth = halfwidth*2-ceil(corpix_subpix);
+corpix_subpix_l = manstitchpos(:,1);
+ol_final_subpix_l = manstitchpos(:,2:end);
+halfwidth_l = ceil(datsize(2)+sum(ol_final_subpix_l,2));
+fullwidth_l = halfwidth_l*2-ceil(corpix_subpix_l);
+fullwidth_min = min(fullwidth_l);
 %% 1.0 Loop over heights
 for h = 1:nhs
+corpix_subpix = corpix_subpix_l(h,:);
+ol_final_subpix = ol_final_subpix_l(h,:);
+halfwidth = halfwidth_l(h,:);
+fullwidth = fullwidth_l(h,:);
+stitchpos = [0,cumsum(ol_final_subpix)];
+% worst case we crop asymetrically by 1 pixel
+crop_left = ceil((fullwidth - fullwidth_min) / 2);
+crop_right = fullwidth - fullwidth_min - crop_left;
 th = hs_range(h);
 fprintf('Working on height %d (%d/%d)\n',th,h,nhs)
 %% 1.1 Flats/darks loading
@@ -105,6 +115,16 @@ for i = 1:nrings
 end
 clear darks flats tmp1 tmp
 %% 1.2 Flat/dark correction, gain/offset/zinger, stitching, saving
+% tiff settings ()
+tagstruct.ImageLength = osy; % y
+tagstruct.ImageWidth = fullwidth_min; % x
+tagstruct.BitsPerSample = 32; % single precission
+tagstruct.RowsPerStrip = stripheight; % strip size (faster loading of strips)
+tagstruct.SamplesPerPixel = 1;
+tagstruct.Compression = Tiff.Compression.None;
+tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
+tagstruct.Photometric = Tiff.Photometric.LinearRaw;
+tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
 
 % build a mask for the 0 degrees projection
 halfmask = zeros(osy,halfwidth,nrings);
@@ -149,7 +169,7 @@ end
 
 % start filtering, blending, stitching
 fprintf('Stitching and saving projections...\n'); tic;
-mproj = zeros(osy,fullwidth,'single');
+mproj = zeros(osy,fullwidth_min,'single');
 parfor p = 1:ip180
     % load, flat/dark correct, filter, and subpixel shift
     rim0 = zeros(osy,datsize(2),nrings);
@@ -252,6 +272,12 @@ parfor p = 1:ip180
     fullproj = fullproj(:,bump+1:end-bump); % knock off edges
     fullproj = padarray(fullproj,[0,bump],'symmetric','both');
     
+    % crop to uniform width
+    if crop_left > crop_right
+        fullproj = subpixelshift(fullproj, 0, 0.5);
+    end
+    fullproj = fullproj(:,crop_left+1:fullwidth-crop_right);
+
     % add to mean projection
     mproj = mproj + (fullproj/ip180);
     
