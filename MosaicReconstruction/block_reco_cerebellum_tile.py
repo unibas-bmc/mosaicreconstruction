@@ -4,7 +4,6 @@
                    # code.interact(local=locals())
 import time
 import os
-import sys
 import tomopy
 import h5py
 import numpy as np
@@ -12,6 +11,7 @@ import pandas
 
 import libtiff as tif
 import threading
+import gc
 
 
 ###### settings, should all come from parameter file
@@ -79,6 +79,8 @@ nblocks = int(sy/blocksize)
 width = sx
 height = sy
 typ = f['/proj'].dtype
+f.close()
+del f
 
 def load_projection_block(projdir, b, blocksize, sx, ip180, typ):
     tyi = b*blocksize+1    # this y initial (indices 1 based)
@@ -89,7 +91,8 @@ def load_projection_block(projdir, b, blocksize, sx, ip180, typ):
     for p in range(ip180):
         f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
         projblock[:,:,p] = f['/proj'][:,tyi-1:tyf].T
-
+        f.close()
+        del f
     executionTime = (time.time() - t2)
     print('read projections: %.2f sec ' % (executionTime))
     return projblock
@@ -168,6 +171,7 @@ for b in range(nblocks):
             fid = tif.TIFF.open(outfname, 'w')
             fid.write_image(np.squeeze(reco[iy,:,:]))
             fid.close()
+        del reco, this_sino_log
     else:
         for iy in range(len(tyr)):
             this_sino_log = tomopy.minus_log(projblock[:,:,iy])
@@ -204,6 +208,9 @@ for b in range(nblocks):
             fid = tif.TIFF.open(outfname, 'w')
             fid.write_image(reco)
             fid.close()
+            del reco, this_sino_log
 
+    del projblock
     executionTime = (time.time() - t3)
     print('reconstruction: %.2f sec ' % (executionTime))
+    gc.collect()
