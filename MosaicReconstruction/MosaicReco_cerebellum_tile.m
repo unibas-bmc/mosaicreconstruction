@@ -148,7 +148,7 @@ for i1 = 1:size(projvol,4)
 end
 
 %% 4.1. check center of rotation
-corRange = 214.5-4:0.5:214.5+4;
+corRange = 213-4:0.5:213+4;
 % note: motor position would be cor_guess, found position would be cor_subpix
 padSize = 2000;
 cropSize = [3000,3000];
@@ -185,9 +185,9 @@ figure, imshow3D(recos_cor,prctile(recos_cor,[1,99],'all')')
 
 %% 4.2. check stitching positions of each ring
 % % Ring 1
-this_cor = 213.4;
+this_cor = 213;
 
-olpix1_range = 1845.75-5:1845.75+5;
+olpix1_range = 1846.25-5:1846.25+5;
 this_nrings = 2;
 
 padSize = 750;
@@ -266,7 +266,7 @@ for i1 = 1:length(olpix1_range)
 end
 
 %gsrange = prctile(recos_crop,[1,99],'all')';
-gsrange = [-0.01,0.075];
+gsrange = [0.0,0.12];
 
 figure, imshow3D(recos_crop,gsrange)
 
@@ -281,10 +281,10 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
 %% 4.3. Tweak any
-cor_range = 214.5;
-s1_range = 1846.0-8:1846.0+8;
-s2_range = 1845.75;
-s3_range = 1845.75;
+cor_range = 213;
+s1_range = 1846.25;
+s2_range = 1845.5;
+s3_range = 1845.5-8:1845.5+8;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
@@ -375,7 +375,7 @@ end
 end
 end
 
-gsrange = [-0.01,0.05];
+gsrange = [0.0,0.12];
 
 figure, imshow3D(squeeze(recos_crop),gsrange)
 
@@ -404,10 +404,10 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-cor = 214.5;
-s1x = 1846.;
-s2x = 1845.75;
-s3x = 1845.75;
+cor = 213;
+s1x = 1846.25;
+s2x = 1845.5;
+s3x = 1845.5;
 manstitchposx = [cor,s1x,s2x,s3x];
 
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
@@ -470,10 +470,10 @@ if not(isfolder(testdir)); mkdir(testdir); end
 this_hs = 1;
 this_ycrop = 1024-7:1024+8;
 
-cor = 214.5;
-s1x = 1846.;
-s2x = 1845.75;
-s3x = 1845.75;
+cor = 213;
+s1x = 1846.25;
+s2x = 1845.5;
+s3x = 1845.5;
 manstitchposx = [cor,s1x,s2x,s3x];
 
 projdir = ProjectionProcessingManualEntry(paramfile,this_hs,manstitchposx,...
