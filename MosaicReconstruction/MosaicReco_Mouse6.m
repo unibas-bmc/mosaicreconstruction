@@ -455,11 +455,11 @@ if not(isfolder(testdir)); mkdir(testdir); end
 hs = 1; % 1 is 1-2, 2 is 2-3, etc.
 
 % stitch position for this overlap
-manstitchposy = 1835.25;
-ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16) 
-ycrop2 = 1820:1835; % region above overlap (length 16)
-% note: this is quite time consuming to run:
-projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
+manstitchposy = 1835;
+ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16)
+xcrop = 6000; % number of pixels to crop projections from both sides
+% projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
+projsavedir = ProjectionProcessing_pass2_YCheck_v2(paramfile,manstitchposy,hs,ycrop1,xcrop);
 
 tmp1 = dir([projsavedir 'proj1_*.tif']);
 tmp2 = dir([projsavedir 'proj2_*.tif']);
@@ -477,8 +477,8 @@ end
 sino1 = squeeze(vol1(round(end/2),:,:));
 sino2 = squeeze(vol2(round(end/2),:,:));
 
-reco1 = SingleGridrecReconstruction([testdir 'overlap'],sino1,angles,pixsize_mm,pythonscript_fullpath);
-reco2 = SingleGridrecReconstruction([testdir 'nooverlap'],sino2,angles,pixsize_mm,pythonscript_fullpath);
+reco1 = SingleGridrecReconstruction([testdir 'hs_n'],sino1,angles,pixsize_mm,pythonscript_fullpath);
+reco2 = SingleGridrecReconstruction([testdir 'hs_n+1'],sino2,angles,pixsize_mm,pythonscript_fullpath);
 
 %% Test filtering and ring correction parameters
 % % set up a directory for tests
