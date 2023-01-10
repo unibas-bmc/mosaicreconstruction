@@ -21,7 +21,7 @@ iterK = 2;           # number of iterations for iterative methods
 pad_sinogram = 3000
 
 ###### Input: Dataset to process
-paramfile = './example/param_files/cerebellum_tile3.txt'
+paramfile = './example/param_files/cerebellum_tile4.txt'
 print('Using ' + paramfile)
 
 ###### 0.2 Read param file
