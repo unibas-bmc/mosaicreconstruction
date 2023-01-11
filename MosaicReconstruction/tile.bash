@@ -9,7 +9,7 @@
 # or
 #	$ nohup bash tile.bash &
 
-tile_nr=3
+tile_nr=4
 
 echo "Block reconstruction for anatomix cerebellum tile #$tile_nr"
 
