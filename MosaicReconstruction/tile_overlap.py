@@ -4,6 +4,42 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import norm
 
+class RecoParam:
+	def __init__(paramfile):
+        # read file, make structure array
+        this.infoStruct = {}
+        with open(paramfile, 'r') as f:
+            for line in f:  # iterate over each line
+            allSplit = line.split("\t")
+            if len(allSplit) == 2:
+                # expecting two values with a tab separated
+                name, valueAndMore = line.split("\t")  # split it by tabs
+                value, others = valueAndMore.split("\n")  # remove endline
+                infoStruct[name] = value
+            f.close()
+        # assign variables
+        this.samplename = infoStruct['samplename']
+        this.infofile = infoStruct['infofile']
+        this.projbasedir = infoStruct['projpath2']
+        this.recobasedir = infoStruct['recopath']
+        this.stripheight = float(infoStruct['stripheight'])
+        this.outputcrop = infoStruct['outputcrop'].split(",")
+        for i in range(len(this.outputcrop)):
+            this.outputcrop[i] = int(this.outputcrop[i])
+
+        this.outputgrayscale = infoStruct['outputgrayscale'].split(",")
+        for i in range(len(this.outputgrayscale)):
+            this.outputgrayscale[i] = float(this.outputgrayscale[i])
+
+        this.blocksize = int(infoStruct['stripheight'])
+        this.ncore = int(infoStruct['ncore'])
+        this.pixsize_um = float(infoStruct['pixsize_um'])
+
+
+param1 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile2.txt")
+param2 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile3.txt")
+
+
 width = 14000. # pixels
 radius = 7500. # pixels
 
@@ -59,4 +95,12 @@ r1 = plt.Rectangle(rect[0,:], rect[1,0] - rect[0,0],
 	rect[3,1] - rect[1,1], fill=False)
 ax.add_artist(r1)
 
-plt.show()
+rect2 = np.round(rect - (x2 - x1).reshape(1,2))
+# assume order z, y, x
+s1 = np.s_[rect[0,1]:rect[3,1], rect[0,0]:rect[1,0]]
+s2 = np.s_[rect2[0,1]:rect2[3,1], rect2[0,0]:rect2[1,0]]
+
+print(s1)
+print(s2)
+
+# plt.show()
