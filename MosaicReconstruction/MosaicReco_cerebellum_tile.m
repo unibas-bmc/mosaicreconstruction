@@ -89,10 +89,10 @@ text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num
 xlabel('height step'), ylabel('estimated COR position')
 
 % manually select values to be used for all height steps
-cor = 213;
-s1x = 1846.25;
-s2x = 1845.5;
-s3x = 1845.5;
+cor = 214;
+s1x = 1845.25;
+s2x = 1845.25;
+s3x = 1845.25;
 manstitchposx = [cor,s1x,s2x,s3x];
 
 % loop over heights, process projections for ycrop, reconstruct
@@ -148,7 +148,7 @@ for i1 = 1:size(projvol,4)
 end
 
 %% 4.1. check center of rotation
-corRange = 213-4:0.5:213+4;
+corRange = 214-4:0.5:214+4;
 % note: motor position would be cor_guess, found position would be cor_subpix
 padSize = 2000;
 cropSize = [3000,3000];
@@ -185,9 +185,9 @@ figure, imshow3D(recos_cor,prctile(recos_cor,[1,99],'all')')
 
 %% 4.2. check stitching positions of each ring
 % % Ring 1
-this_cor = 213;
+this_cor = 214;
 
-olpix1_range = 1846.25-5:1846.25+5;
+olpix1_range = 1845.25-5:1845.25+5;
 this_nrings = 2;
 
 padSize = 750;
@@ -281,10 +281,10 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
 %% 4.3. Tweak any
-cor_range = 213;
-s1_range = 1846.25;
-s2_range = 1845.5;
-s3_range = 1845.5-8:1845.5+8;
+cor_range = 214;
+s1_range = 1845.25;
+s2_range = 1845.25;
+s3_range = 1845.25-8:1845.25+8;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
@@ -404,10 +404,10 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-cor = 213;
-s1x = 1846.25;
-s2x = 1845.5;
-s3x = 1845.5;
+cor = 214;
+s1x = 1845.25;
+s2x = 1845.25;
+s3x = 1845.25;
 manstitchposx = [cor,s1x,s2x,s3x];
 
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
