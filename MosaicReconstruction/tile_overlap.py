@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import norm
 import pandas
+import tifffile
 
 class RecoParam:
     def __init__(self, paramfile):
@@ -20,9 +21,11 @@ class RecoParam:
                     value, others = valueAndMore.split("\n")
                     infoStruct[name] = value
             f.close()
+
         # assign variables
         self.samplename = infoStruct['samplename']
         self.infofile = infoStruct['infofile']
+        self.rawdatapath = infoStruct['rawdatapath']
         self.projbasedir = infoStruct['projpath2']
         self.recobasedir = infoStruct['recopath']
         self.stripheight = float(infoStruct['stripheight'])
@@ -39,21 +42,52 @@ class RecoParam:
         self.pixsize_um = float(infoStruct['pixsize_um'])
         self.infotable = pandas.read_csv(self.infofile)
 
-        # read motor positions
+        ## read motor positions
+        scan_center = self.infotable[pandas.DataFrame([
+                self.infotable.ring == 1,
+                self.infotable.heightstep == 1,
+            ]).all()]
+        assert(scan_center.shape[0] == 1)
+        scan_center = scan_center.iloc[0]
+        scanname = scan_center.scandir
+        if scan_center.suffix != 0:
+            scanname += "_{}".format(scan_center.suffix)
+        parfile = "{}{}/{}.par".format(self.rawdatapath,
+            scanname, scanname)
 
+        with open(parfile, 'r') as f:
+            for l in f:
+                l = l.split(' ')
+                if l[0] == "#tomo1tx":
+                    assert(l[1] == "=")
+                    self.tomo1tx = float(l[2])
+                elif l[0] == "#tomo1tz":
+                    assert(l[1] == "=")
+                    self.tomo1tz = float(l[2])
+                elif l[0] == "#tomo1tu1":
+                    assert(l[1] == "=")
+                    self.tomo1tu1 = float(l[2])
+                elif l[0] == "#tomo1tv1":
+                    assert(l[1] == "=")
+                    self.tomo1tv1 = float(l[2])
+
+        # read reco width
+        recopath = self.recobasedir + self.samplename + "/reco/"
+        tif = tifffile.TiffFile(recopath + "reco_00001.tif")
+        self.recowidth = tif.pages[0].shape[0]
 
 param1 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile2.txt")
 param2 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile3.txt")
 
+width = param1.recowidth # pixels
+radius = np.round((width + param1.outputcrop[0]
+        + param1.outputcrop[1]) / 2)
 
-width = 14000. # pixels
-radius = 7500. # pixels
+pixsize = param1.pixsize_um * 1e-3
 
-pixsize = 6.5e-4 # mm
-
-# u & v motor positions
-x1 = np.array([0.03000608, 8.26400422]) # mm
-x2 = np.array([7.22999703, 4.107003875]) # mm
+# u & v motor positions -> is u parallel to x or y?
+x1 = np.array([param1.tomo1tu1, param1.tomo1tv1]) # mm
+x2 = np.array([param2.tomo1tu1, param2.tomo1tv1]) # mm
 
 x1 /= pixsize
 x2 /= pixsize
@@ -109,4 +143,4 @@ s2 = np.s_[rect2[0,1]:rect2[3,1], rect2[0,0]:rect2[1,0]]
 print(s1)
 print(s2)
 
-# plt.show()
+plt.show()
