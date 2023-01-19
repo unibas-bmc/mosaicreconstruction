@@ -3,37 +3,43 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import norm
+import pandas
 
 class RecoParam:
-	def __init__(paramfile):
+    def __init__(self, paramfile):
         # read file, make structure array
-        this.infoStruct = {}
+        infoStruct = {}
         with open(paramfile, 'r') as f:
             for line in f:  # iterate over each line
-            allSplit = line.split("\t")
-            if len(allSplit) == 2:
-                # expecting two values with a tab separated
-                name, valueAndMore = line.split("\t")  # split it by tabs
-                value, others = valueAndMore.split("\n")  # remove endline
-                infoStruct[name] = value
+                allSplit = line.split("\t")
+                if len(allSplit) == 2:
+                    # expecting two values with a tab separated
+                    # split it by tabs
+                    name, valueAndMore = line.split("\t")
+                    # remove endline
+                    value, others = valueAndMore.split("\n")
+                    infoStruct[name] = value
             f.close()
         # assign variables
-        this.samplename = infoStruct['samplename']
-        this.infofile = infoStruct['infofile']
-        this.projbasedir = infoStruct['projpath2']
-        this.recobasedir = infoStruct['recopath']
-        this.stripheight = float(infoStruct['stripheight'])
-        this.outputcrop = infoStruct['outputcrop'].split(",")
-        for i in range(len(this.outputcrop)):
-            this.outputcrop[i] = int(this.outputcrop[i])
+        self.samplename = infoStruct['samplename']
+        self.infofile = infoStruct['infofile']
+        self.projbasedir = infoStruct['projpath2']
+        self.recobasedir = infoStruct['recopath']
+        self.stripheight = float(infoStruct['stripheight'])
+        self.outputcrop = infoStruct['outputcrop'].split(",")
+        for i in range(len(self.outputcrop)):
+            self.outputcrop[i] = int(self.outputcrop[i])
 
-        this.outputgrayscale = infoStruct['outputgrayscale'].split(",")
-        for i in range(len(this.outputgrayscale)):
-            this.outputgrayscale[i] = float(this.outputgrayscale[i])
+        self.outputgrayscale = infoStruct['outputgrayscale'].split(",")
+        for i in range(len(self.outputgrayscale)):
+            self.outputgrayscale[i] = float(self.outputgrayscale[i])
 
-        this.blocksize = int(infoStruct['stripheight'])
-        this.ncore = int(infoStruct['ncore'])
-        this.pixsize_um = float(infoStruct['pixsize_um'])
+        self.blocksize = int(infoStruct['stripheight'])
+        self.ncore = int(infoStruct['ncore'])
+        self.pixsize_um = float(infoStruct['pixsize_um'])
+        self.infotable = pandas.read_csv(self.infofile)
+
+        # read motor positions
 
 
 param1 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile2.txt")
@@ -60,24 +66,24 @@ center = np.round((x1 + x2) / 2.)
 rect = np.broadcast_to(center, (4, 2))
 
 def rect_is_contained(r, x, y, R):
-	d = norm(r - x.reshape(1,2), axis=1)
-	if not np.all(d < R):
-		return False
-	d = norm(r - y.reshape(1,2), axis=1)
-	if not np.all(d < R):
-		return False
-	return True
-	
+    d = norm(r - x.reshape(1,2), axis=1)
+    if not np.all(d < R):
+        return False
+    d = norm(r - y.reshape(1,2), axis=1)
+    if not np.all(d < R):
+        return False
+    return True
+
 def rect_grow(r):
-	return r + np.array([
-			[-1, -1],
-			[+1, -1],
-			[+1, +1],
-			[-1, +1],
-		])
+    return r + np.array([
+            [-1, -1],
+            [+1, -1],
+            [+1, +1],
+            [-1, +1],
+        ])
 
 while rect_is_contained(tmp := rect_grow(rect), x1, x2, radius):
-	rect = tmp
+    rect = tmp
 
 fig, ax = plt.subplots()
 ax.set_aspect(1)
@@ -92,7 +98,7 @@ ax.add_artist(c1)
 ax.add_artist(c2)
 
 r1 = plt.Rectangle(rect[0,:], rect[1,0] - rect[0,0],
-	rect[3,1] - rect[1,1], fill=False)
+    rect[3,1] - rect[1,1], fill=False)
 ax.add_artist(r1)
 
 rect2 = np.round(rect - (x2 - x1).reshape(1,2))
