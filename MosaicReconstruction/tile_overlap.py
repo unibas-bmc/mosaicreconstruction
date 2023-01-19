@@ -76,28 +76,6 @@ class RecoParam:
         tif = tifffile.TiffFile(recopath + "reco_00001.tif")
         self.recowidth = tif.pages[0].shape[0]
 
-param1 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile2.txt")
-param2 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile3.txt")
-
-width = param1.recowidth # pixels
-radius = np.round((width + param1.outputcrop[0]
-        + param1.outputcrop[1]) / 2)
-
-pixsize = param1.pixsize_um * 1e-3
-
-# u & v motor positions -> is u parallel to x or y?
-x1 = np.array([param1.tomo1tu1, param1.tomo1tv1]) # mm
-x2 = np.array([param2.tomo1tu1, param2.tomo1tv1]) # mm
-
-x1 /= pixsize
-x2 /= pixsize
-
-x2 -= x1
-x1 = np.array([np.ceil(width / 2), np.ceil(width/2)])
-x2 += x1
-
-center = np.round((x1 + x2) / 2.)
-rect = np.broadcast_to(center, (4, 2))
 
 def rect_is_contained(r, x, y, R):
     d = norm(r - x.reshape(1,2), axis=1)
@@ -108,6 +86,7 @@ def rect_is_contained(r, x, y, R):
         return False
     return True
 
+
 def rect_grow(r):
     return r + np.array([
             [-1, -1],
@@ -116,31 +95,71 @@ def rect_grow(r):
             [-1, +1],
         ])
 
-while rect_is_contained(tmp := rect_grow(rect), x1, x2, radius):
-    rect = tmp
 
-fig, ax = plt.subplots()
-ax.set_aspect(1)
-ax.set_xlim(10000, 16000)
-ax.set_ylim(0, 8000)
+def overlap_rects(param1, param2, ratio=0.9, plot=False):
 
-c1 = plt.Circle(x1, radius, fill=False)
-c2 = plt.Circle(x2, radius, fill=False)
-# c1 = plt.Circle((0.5, 0.5), 0.2, fill=False)
-# c2 = plt.Circle((0.3, 0.7), 0.2, fill=False)
-ax.add_artist(c1)
-ax.add_artist(c2)
+    width = param1.recowidth # pixels
+    radius = np.round((width + param1.outputcrop[0]
+            + param1.outputcrop[1]) / 2)
+    # reduce the radius by a certain factor, so we are out of the range
+    # of edge effects and hopefully, to a degree, cupping
+    radius *= ratio
 
-r1 = plt.Rectangle(rect[0,:], rect[1,0] - rect[0,0],
-    rect[3,1] - rect[1,1], fill=False)
-ax.add_artist(r1)
+    pixsize = param1.pixsize_um * 1e-3
 
-rect2 = np.round(rect - (x2 - x1).reshape(1,2))
-# assume order z, y, x
-s1 = np.s_[rect[0,1]:rect[3,1], rect[0,0]:rect[1,0]]
-s2 = np.s_[rect2[0,1]:rect2[3,1], rect2[0,0]:rect2[1,0]]
+    # u & v motor positions -> is u parallel to x or y?
+    x1 = np.array([param1.tomo1tu1, param1.tomo1tv1]) # mm
+    x2 = np.array([param2.tomo1tu1, param2.tomo1tv1]) # mm
 
-print(s1)
-print(s2)
+    x1 /= pixsize
+    x2 /= pixsize
 
-plt.show()
+    x2 -= x1
+    x1 = np.array([np.ceil(width / 2), np.ceil(width/2)])
+    x2 += x1
+
+    center = np.round((x1 + x2) / 2.)
+    rect = np.broadcast_to(center, (4, 2))
+
+    while rect_is_contained(tmp := rect_grow(rect), x1, x2, radius):
+        rect = tmp
+
+    assert(rect[1,0] - rect[0,0] >= 200)
+    assert(rect[3,1] - rect[0,1] >= 200)
+
+    rect2 = np.round(rect - (x2 - x1).reshape(1,2))
+    # assume order z, y, x
+    s1 = np.s_[rect[0,1]:rect[3,1], rect[0,0]:rect[1,0]]
+    s2 = np.s_[rect2[0,1]:rect2[3,1], rect2[0,0]:rect2[1,0]]
+
+    if plot:
+        fig, ax = plt.subplots()
+        ax.set_aspect(1)
+        ax.set_xlim(10000, 16000)
+        ax.set_ylim(0, 8000)
+
+        c1 = plt.Circle(x1, radius, fill=False)
+        c2 = plt.Circle(x2, radius, fill=False)
+        # c1 = plt.Circle((0.5, 0.5), 0.2, fill=False)
+        # c2 = plt.Circle((0.3, 0.7), 0.2, fill=False)
+        ax.add_artist(c1)
+        ax.add_artist(c2)
+
+        r1 = plt.Rectangle(rect[0,:], rect[1,0] - rect[0,0],
+            rect[3,1] - rect[1,1], fill=False)
+        ax.add_artist(r1)
+
+        plt.show()
+
+    return s1, s2
+
+def _main():
+    param1 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile2.txt")
+    param2 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile3.txt")
+    s1, s2 = overlap_rects(param1, param2, ratio=0.9, plot=False)
+    print(s1)
+    print(s2)
+
+
+if __name__ == "__main__":
+    _main()
