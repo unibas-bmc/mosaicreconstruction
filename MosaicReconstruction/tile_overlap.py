@@ -8,6 +8,7 @@ import tifffile
 import SimpleITK as sitk
 import os
 
+
 class RecoParam:
     def __init__(self, paramfile):
         print("Reading parameter file: {}".format(paramfile))
@@ -197,12 +198,7 @@ def load_volume(param, roi):
     return vol
 
 
-def _main(plot=False):
-
-    param_dir = "/home/mattia/Documents/Cerebellum22/" \
-            + "MosaicReconstruction/example/param_files/"
-    tile1 = 2
-    tile2 = 3
+def overlap_displacement(param_dir, tile1, tile2, plot=False):
 
     print("Fixed tile: {}".format(tile1))
     print("Moving tile: {}".format(tile2))
@@ -261,6 +257,17 @@ def _main(plot=False):
     transform_parameters = np.array(list(transform[
         "TransformParameters"])).astype(np.float32)
     print("TransformParameters: {}".format(transform_parameters))
+
+
+def _main():
+
+    param_dir = "/home/mattia/Documents/Cerebellum22/" \
+            + "MosaicReconstruction/example/param_files/"
+    tile1 = 1
+    tile2 = 2
+
+    overlap_displacement(param_dir, tile1, tile2, plot=False)
+
 
 if __name__ == "__main__":
     _main()
