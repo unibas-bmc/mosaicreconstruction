@@ -5,9 +5,12 @@ import matplotlib.pyplot as plt
 from scipy.linalg import norm
 import pandas
 import tifffile
+import SimpleITK as sitk
+import os
 
 class RecoParam:
     def __init__(self, paramfile):
+        print("Reading parameter file: {}".format(paramfile))
         # read file, make structure array
         infoStruct = {}
         with open(paramfile, 'r') as f:
@@ -40,6 +43,7 @@ class RecoParam:
         self.blocksize = int(infoStruct['stripheight'])
         self.ncore = int(infoStruct['ncore'])
         self.pixsize_um = float(infoStruct['pixsize_um'])
+        print("Reading info file: {}".format(self.infofile))
         self.infotable = pandas.read_csv(self.infofile)
 
         ## read motor positions
@@ -55,6 +59,7 @@ class RecoParam:
         parfile = "{}{}/{}.par".format(self.rawdatapath,
             scanname, scanname)
 
+        print("Reading PyHST .par file: {}".format(parfile))
         with open(parfile, 'r') as f:
             for l in f:
                 l = l.split(' ')
@@ -73,7 +78,9 @@ class RecoParam:
 
         # read reco width
         recopath = self.recobasedir + self.samplename + "/reco/"
+        print("Reading slice from: {}".format(recopath))
         tif = tifffile.TiffFile(recopath + "reco_00001.tif")
+        assert(tif.pages[0].shape[0] == tif.pages[0].shape[1])
         self.recowidth = tif.pages[0].shape[0]
 
 
@@ -98,16 +105,19 @@ def rect_grow(r):
 
 def overlap_rects(param1, param2, ratio=0.9, plot=False):
 
+    print("Find overlap for radii with ratio: {}".format(ratio))
     width = param1.recowidth # pixels
     radius = np.round((width + param1.outputcrop[0]
             + param1.outputcrop[1]) / 2)
+    print("width: {}".format(width))
+    print("radius: {}".format(radius))
     # reduce the radius by a certain factor, so we are out of the range
     # of edge effects and hopefully, to a degree, cupping
     radius *= ratio
 
     pixsize = param1.pixsize_um * 1e-3
 
-    # u & v motor positions -> is u parallel to x or y?
+    # u & v motor positions (u is x, v is y)
     x1 = np.array([param1.tomo1tu1, param1.tomo1tv1]) # mm
     x2 = np.array([param2.tomo1tu1, param2.tomo1tv1]) # mm
 
@@ -117,6 +127,7 @@ def overlap_rects(param1, param2, ratio=0.9, plot=False):
     x2 -= x1
     x1 = np.array([np.ceil(width / 2), np.ceil(width/2)])
     x2 += x1
+    print("centers {} and {}".format(x1, x2))
 
     center = np.round((x1 + x2) / 2.)
     rect = np.broadcast_to(center, (4, 2))
@@ -128,9 +139,15 @@ def overlap_rects(param1, param2, ratio=0.9, plot=False):
     assert(rect[3,1] - rect[0,1] >= 200)
 
     rect2 = np.round(rect - (x2 - x1).reshape(1,2))
+    rect = rect.astype(int)
+    print("rect: {}".format(rect))
+    rect2 = rect2.astype(int)
     # assume order z, y, x
-    s1 = np.s_[rect[0,1]:rect[3,1], rect[0,0]:rect[1,0]]
-    s2 = np.s_[rect2[0,1]:rect2[3,1], rect2[0,0]:rect2[1,0]]
+    # keep in mind that y is stored from top to bottom
+    s1 = np.s_[(param1.recowidth-rect[3,1]):(param1.recowidth-rect[0,1]),
+            rect[0,0]:rect[1,0]]
+    s2 = np.s_[(param2.recowidth-rect2[3,1]):(param2.recowidth-rect2[0,1]),
+            rect2[0,0]:rect2[1,0]]
 
     if plot:
         fig, ax = plt.subplots()
@@ -149,17 +166,101 @@ def overlap_rects(param1, param2, ratio=0.9, plot=False):
             rect[3,1] - rect[1,1], fill=False)
         ax.add_artist(r1)
 
+        scan1 = plt.Rectangle([0, 0], param1.recowidth, \
+                param1.recowidth, fill=False)
+        ax.add_artist(scan1)
+        scan2 = plt.Rectangle(x2 - x1, param2.recowidth, \
+                param2.recowidth, fill=False)
+        ax.add_artist(scan2)
+
         plt.show()
 
     return s1, s2
 
-def _main():
-    param1 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile2.txt")
-    param2 = RecoParam("/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile3.txt")
-    s1, s2 = overlap_rects(param1, param2, ratio=0.9, plot=False)
-    print(s1)
-    print(s2)
 
+def load_volume(param, roi):
+    # roi passed as slices in the zyx order
+    zrange = [roi[0].start, roi[0].stop]
+    yrange = [roi[1].start, roi[1].stop]
+    xrange = [roi[2].start, roi[2].stop]
+    sz = zrange[1] - zrange[0]
+    sy = yrange[1] - yrange[0]
+    sx = xrange[1] - xrange[0]
+    vol = np.empty((sz, sy, sx))
+    print("Loading volume ({}, {}, {}) from: {}{}/reco/".format(
+        sz, sy, sx, param.recobasedir, param.samplename))
+    for z in range(sz):
+        filename = "{}{}/reco/reco_{:05d}.tif".format(
+                param.recobasedir, param.samplename, z + zrange[0] + 1)
+        im = tifffile.imread(filename)
+        vol[z,:,:] = im[yrange[0]:yrange[1], xrange[0]:xrange[1]]
+    return vol
+
+
+def _main(plot=False):
+
+    param_dir = "/home/mattia/Documents/Cerebellum22/" \
+            + "MosaicReconstruction/example/param_files/"
+    tile1 = 2
+    tile2 = 3
+
+    print("Fixed tile: {}".format(tile1))
+    print("Moving tile: {}".format(tile2))
+    print("Read parameter files from: {}".format(param_dir))
+    param1 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile1))
+    param2 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile2))
+
+    basename = "registration_{}-{}".format(tile1, tile2)
+    assert(param1.recobasedir == param2.recobasedir)
+    write_dir = "{}cerebellum_tile_all/{}/".format(param1.recobasedir,
+            basename)
+    os.makedirs(write_dir, mode=0o755, exist_ok=True)
+
+    logfile = write_dir + "Log.txt"
+    parfile = write_dir + "Parameter.txt"
+    transfile = write_dir + "TransformParameter.txt"
+    fixedfile = write_dir + "Fixed.mha"
+    movingfile = write_dir + "Moving.mha"
+    resultfile = write_dir + "Result.mha"
+
+    s1, s2 = overlap_rects(param1, param2, ratio=0.9, plot=plot)
+    sz = np.s_[1024-8:1024+8]
+    s1 = [sz, s1[1], s1[0]]
+    s2 = [sz, s2[1], s2[0]]
+    print("Volume in fixed tile: {}".format(s1))
+    print("Volume in moving tile: {}".format(s2))
+    vol1 = load_volume(param1, s1)
+    vol2 = load_volume(param2, s2)
+    if plot:
+        plt.figure(); plt.imshow(vol1[0,:,:]);
+        plt.figure(); plt.imshow(vol2[0,:,:]);
+        plt.show()
+
+    print("Write registration results and log to: {}".format(write_dir))
+    vol1 = sitk.GetImageFromArray(vol1)
+    vol2 = sitk.GetImageFromArray(vol2)
+    sitk.WriteImage(vol1, fixedfile)
+    sitk.WriteImage(vol2, movingfile)
+    parameter_map = sitk.GetDefaultParameterMap("rigid")
+
+    elastix = sitk.ElastixImageFilter()
+    elastix.SetFixedImage(vol1)
+    elastix.SetMovingImage(vol2)
+    elastix.SetParameterMap(parameter_map)
+    elastix.WriteParameterFile(parameter_map, parfile)
+    # elastix.SetLogFileName(logfile)
+    # elastix.SetLogToFile(True)
+    # elastix.SetLogToConsole(False)
+    elastix.Execute()
+
+    result = elastix.GetResultImage()
+    sitk.WriteImage(result, resultfile)
+
+    transform = elastix.GetTransformParameterMap()[0]
+    elastix.WriteParameterFile(transform, transfile)
+    transform_parameters = np.array(list(transform[
+        "TransformParameters"])).astype(np.float32)
+    print("TransformParameters: {}".format(transform_parameters))
 
 if __name__ == "__main__":
     _main()
