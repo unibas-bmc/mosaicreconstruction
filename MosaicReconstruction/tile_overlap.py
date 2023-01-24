@@ -266,6 +266,38 @@ def overlap_displacement(param_dir, tile1, tile2, plot=False):
     transform_parameters = np.array(list(transform[
         "TransformParameters"])).astype(np.float32)
     print("TransformParameters: {}".format(transform_parameters))
+    disp += transform_parameters[-3:]
+    print("Total displacement: {}".format(disp))
+    np.savetxt(dispfile, disp)
+
+
+def load_transform_parameter_map(param_dir, tile1, tile2):
+
+    param1 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile1))
+    param2 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile2))
+
+    basename = "registration_{}-{}".format(tile1, tile2)
+    assert(param1.recobasedir == param2.recobasedir)
+    write_dir = "{}cerebellum_tile_all/{}/".format(param1.recobasedir,
+            basename)
+
+    elastix = sitk.ElastixImageFilter()
+
+    transform = elastix.ReadParameterFile(
+            write_dir + "TransformParameter.txt")
+
+    return transform
+
+
+def absolute_displacement(param_dir):
+    t12 = load_transform_parameter_map(param_dir, 1, 2)
+    t12 = np.array(list(t12["TransformParameters"])).astype(np.float32)
+    t13 = load_transform_parameter_map(param_dir, 1, 3)
+    t13 = np.array(list(t13["TransformParameters"])).astype(np.float32)
+    t23 = load_transform_parameter_map(param_dir, 2, 3)
+    t23 = np.array(list(t23["TransformParameters"])).astype(np.float32)
+    print(t13)
+    print(t12 + t23)
 
 
 def _main():
@@ -276,6 +308,7 @@ def _main():
     tile2 = 2
 
     overlap_displacement(param_dir, tile1, tile2, plot=False)
+    # absolute_displacement(param_dir)
 
 
 if __name__ == "__main__":
