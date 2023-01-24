@@ -150,6 +150,12 @@ def overlap_rects(param1, param2, ratio=0.9, plot=False):
     s2 = np.s_[(param2.recowidth-rect2[3,1]):(param2.recowidth-rect2[0,1]),
             rect2[0,0]:rect2[1,0]]
 
+    # displacement between the rectangle as seen in the two reference
+    # frames (in units of pixels)
+    # this is roughly (x2 - x1), as it should be, but taking into
+    # account the rounding
+    disp = rect[0,:] - rect2[0,:]
+
     if plot:
         fig, ax = plt.subplots()
         ax.set_aspect(1)
@@ -176,7 +182,7 @@ def overlap_rects(param1, param2, ratio=0.9, plot=False):
 
         plt.show()
 
-    return s1, s2
+    return s1, s2, disp
 
 
 def load_volume(param, roi):
@@ -218,11 +224,14 @@ def overlap_displacement(param_dir, tile1, tile2, plot=False):
     fixedfile = write_dir + "Fixed.mha"
     movingfile = write_dir + "Moving.mha"
     resultfile = write_dir + "Result.mha"
+    dispfile = write_dir + "Displacement.txt"
 
-    s1, s2 = overlap_rects(param1, param2, ratio=0.9, plot=plot)
+    s1, s2, disp = overlap_rects(param1, param2, ratio=0.9, plot=plot)
     sz = np.s_[1024-8:1024+8]
     s1 = [sz, s1[1], s1[0]]
     s2 = [sz, s2[1], s2[0]]
+    # for this one keep the xyz ordering
+    disp = np.array([disp[0], disp[1], 0.], dtype=np.float32)
     print("Volume in fixed tile: {}".format(s1))
     print("Volume in moving tile: {}".format(s2))
     vol1 = load_volume(param1, s1)
