@@ -16,8 +16,7 @@ pad_sinogram = 3000
 ncore = 4
 
 ###### Input: Dataset to process
-paramfile = '/scicore/home/muelleb/GROUP/nobackup/' \
-	+ 'anatomix_cerebellum_mattia/param_files/cerebellum_tile6.txt'
+paramfile = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile6.txt'
 print('Using ' + paramfile)
 
 ###### 0.2 Read param file
