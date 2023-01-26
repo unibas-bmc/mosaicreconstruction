@@ -90,9 +90,9 @@ xlabel('height step'), ylabel('estimated COR position')
 
 % manually select values to be used for all height steps
 cor = 214;
-s1x = 1845.5;
-s2x = 1845.5;
-s3x = 1845.5;
+s1x = 1845.75;
+s2x = 1846.0;
+s3x = 1845.75;
 manstitchposx = [cor,s1x,s2x,s3x];
 
 % loop over heights, process projections for ycrop, reconstruct
@@ -281,10 +281,10 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
 %% 4.3. Tweak any
-cor_range = 215;
-s1_range = 1845.5;
-s2_range = 1845.5;
-s3_range = 1845.5-8:1845.5+8;
+cor_range = 214;
+s1_range = 1845.75;
+s2_range = 1846.0-8:2:1846.0+8;
+s3_range = 1845.75;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
