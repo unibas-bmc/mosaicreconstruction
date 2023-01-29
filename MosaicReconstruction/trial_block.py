@@ -1,4 +1,4 @@
-# Reconstruction of stitched projections
+# Reconstruction of sinograms built from stitched projections
 
 import tomopy
 import time
@@ -7,16 +7,17 @@ import numpy as np
 import os
 
 #### parameter to vary ####
-slice_range = [1024, 1024 + 32]
+ncore = 2
+slice_start = 1024
+slice_range = [slice_start, slice_start + ncore]
 
 method='gridrec'     # 'fbp' takes very long
 iterK = 2            # number of iterations for iterative methods
 pad_sinogram = 3000
 
-ncore = 4
 
 ###### Input: Dataset to process
-paramfile = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile6.txt'
+paramfile = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile5.txt'
 print('Using ' + paramfile)
 
 ###### 0.2 Read param file
@@ -45,6 +46,7 @@ for i in range(len(outputcrop)):
 
 ###### 0.4 Set up directories
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep;
+sinodir = projbasedir + samplename + os.sep + 'sino' + os.sep;
 recodir = recobasedir + samplename + os.sep + 'reco' + os.sep;
 
 os.makedirs(recodir, mode=0o755, exist_ok=True)
@@ -59,48 +61,48 @@ ip180 = angles.shape[0]
 pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
 
-# info on projections
-f = h5py.File(projdir + 'proj_f_' + '%04d' % (1) + '.h5', 'r')   # read information
-sx = f['/proj'].shape[0]
-sy = f['/proj'].shape[1]
+# info on sinograms
+f = h5py.File(sinodir + 'sino_' + '%05d' % (1) + '.h5', 'r')
+assert(f['/sino'].shape[0] == ip180)
+sx = f['/sino'].shape[1]
 sz = slice_range[1] - slice_range[0]
 
-typ = f['/proj'].dtype
+typ = f['/sino'].dtype
 
 print('Loading slices ' + str(slice_range[0] + 1) + ' to '
 	+ str(slice_range[1]) + '...')
 t1 = time.time()
 
-# load projection block 
-projblock = np.empty((ip180, sz, sx), typ) # theta z x (projection order)
-print('Loading projections...')
+# load sinogram block 
+sinoblock = np.empty((sz, ip180, sx), typ) # z theta x (sinogram order)
+print('Loading sinograms...')
 t2 = time.time()
-for p in range(ip180):
-	f = h5py.File(projdir + 'proj_f_%04d' % (p+1) +  '.h5', 'r')
-	typ = f['/proj'].dtype
-	projblock[p,:,:] = f['/proj'][:,slice_range[0]:slice_range[1]]\
-		.transpose()
+for s in range(sz):
+	f = h5py.File(sinodir + 'sino_%05d' % (slice_range[0]+s+1) +  '.h5',
+            'r')
+	typ = f['/sino'].dtype
+	sinoblock[s,:,:] = f['/sino'][()]
 
 executionTime = (time.time() - t2)
-print('read projections: %.2f sec ' % (executionTime))
+print('read sinograms: %.2f sec ' % (executionTime))
 
 print('Reconstruction and writing...')
 t3 = time.time()
-projblock = tomopy.minus_log(projblock)
+sinoblock = tomopy.minus_log(sinoblock)
 if pad_sinogram != 0:
-	projblock = np.pad(projblock,
+	sinoblock = np.pad(sinoblock,
 		((0,0),(0,0),(pad_sinogram,pad_sinogram)),
 		mode='edge')
 
 # sinogram_order means: stack of sinograms (z theta x)
 # non-sinogram_order means: stack of projections (theta z x)
 if method=='fbp' or method=='gridrec':
-	reco = tomopy.recon(projblock, angles,
-		sinogram_order=False,algorithm=method,ncore=ncore)\
+	reco = tomopy.recon(sinoblock, angles,
+		sinogram_order=True,algorithm=method,ncore=ncore)\
 		/pixsize_mm
 else:
-	reco = tomopy.recon(projblock, angles,
-		sinogram_order=False,algorithm=method,
+	reco = tomopy.recon(sinoblock, angles,
+		sinogram_order=True,algorithm=method,
 		num_iter=iterK,ncore=ncore)/pixsize_mm
     
 # remove the padding
