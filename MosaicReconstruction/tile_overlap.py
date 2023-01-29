@@ -206,6 +206,10 @@ def load_volume(param, roi):
 
 def overlap_displacement(param_dir, tile1, tile2, plot=False):
 
+    if hasattr(tile1, '__len__'):
+        for t1, t2 in zip(tile1, tile2):
+            overlap_displacement(param_dir, t1, t2, plot=plot)
+
     print("Fixed tile: {}".format(tile1))
     print("Moving tile: {}".format(tile2))
     print("Read parameter files from: {}".format(param_dir))
@@ -289,26 +293,61 @@ def load_transform_parameter_map(param_dir, tile1, tile2):
     return transform
 
 
-def absolute_displacement(param_dir):
-    t12 = load_transform_parameter_map(param_dir, 1, 2)
-    t12 = np.array(list(t12["TransformParameters"])).astype(np.float32)
-    t13 = load_transform_parameter_map(param_dir, 1, 3)
-    t13 = np.array(list(t13["TransformParameters"])).astype(np.float32)
-    t23 = load_transform_parameter_map(param_dir, 2, 3)
-    t23 = np.array(list(t23["TransformParameters"])).astype(np.float32)
-    print(t13)
-    print(t12 + t23)
+def load_displacement(param_dir, tile1, tile2):
 
+    param1 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile1))
+    param2 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile2))
+
+    basename = "registration_{}-{}".format(tile1, tile2)
+    assert(param1.recobasedir == param2.recobasedir)
+    write_dir = "{}cerebellum_tile_all/{}/".format(param1.recobasedir,
+            basename)
+
+    transform = np.loadtxt(write_dir + "Displacement.txt")
+
+    return transform
+
+
+def pick_disp(disp, tl1, tl2, t1, t2):
+    for i in range(disp.shape[0]):
+        if tl1[i] == t1 and tl2[i] == t2:
+            return disp[i,:]
+        if tl2[i] == t1 and tl1[i] == t2:
+            return -disp[i,:]
+    raise IndexError("displacement {}-{} does not exist".format(t1, t2))
+
+
+def path_displacement(disp, tl1, tl2, path):
+    path_disp = np.zeros((3,))
+    for i in range(len(path) - 1):
+        path_disp += pick_disp(disp, tl1, tl2, path[i], path[i+1])
+    return path_disp
+
+
+def absolute_displacement(param_dir, tile1, tile2, paths):
+    n = len(tile1)
+    disp = np.empty((n, 3))
+    for i in range(n):
+        disp[i,:] = load_displacement(param_dir, tile1[i], tile2[i])
+    for i in range(n):
+        print("{}-{}: {:8.1f} {:8.1f} {:8.1f}".format(
+            tile1[i], tile2[i], *disp[i,:]))
+    for path in paths:
+        print("{}: {:8.1f} {:8.1f} {:8.1f}".format(path,
+            *path_displacement(disp, tile1, tile2, path)))
 
 def _main():
 
     param_dir = "/home/mattia/Documents/Cerebellum22/" \
             + "MosaicReconstruction/example/param_files/"
-    tile1 = 1
-    tile2 = 2
+    tile1 = [1, 1, 1, 2, 3]
+    tile2 = [2, 3, 4, 3, 4]
+    paths = [[1, 2],
+            [1, 3], [1, 2, 3], [1, 4, 3],
+            [1, 4], [1, 3, 4]]
 
-    overlap_displacement(param_dir, tile1, tile2, plot=False)
-    # absolute_displacement(param_dir)
+    # overlap_displacement(param_dir, tile1, tile2, plot=False)
+    absolute_displacement(param_dir, tile1, tile2, paths)
 
 
 if __name__ == "__main__":
