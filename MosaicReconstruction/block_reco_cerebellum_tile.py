@@ -111,7 +111,6 @@ for b in range(nblocks):
     t3 = time.time()
 
     sinoblock = tomopy.minus_log(sinoblock, ncore=ncore)
-    sinoblock = np.transpose(sinoblock, (2, 1, 0))
     if pad_sinogram != 0:
         sinoblock = np.pad(sinoblock,
                                ((0, 0), (0, 0), (pad_sinogram, pad_sinogram)),
