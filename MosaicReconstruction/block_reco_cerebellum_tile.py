@@ -74,10 +74,16 @@ pixsize_mm = pixsize_um * 1e-3
 f = h5py.File(sinodir + 'sino_' + '%05d' % (1) + '.h5', 'r')
 assert(f['/sino'].shape[0] == ip180)
 sx = f['/sino'].shape[1]
-sz = slice_range[1] - slice_range[0]
+typ = f['/sino'].dtype
+f.close()
+
+# info on projections
+f = h5py.File(projdir + 'proj_f_' + '%04d' % (1) + '.h5', 'r')
+assert(f['/proj'].shape[0] == sx)
+sz = f['/proj'].shape[1]
+
 nblocks = int(sz / ncore)
 
-typ = f['/sino'].dtype
 f.close()
 del f
 
