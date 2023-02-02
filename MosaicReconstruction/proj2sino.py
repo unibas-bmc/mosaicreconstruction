@@ -37,7 +37,7 @@ stripheight = float(infoStruct['stripheight'])
 ## Overwrite blocksize to use memory more efficiently, as we're
 ## not computing anything
 # blocksize = int(infoStruct['stripheight'])
-blocksize = 64
+blocksize = 128
 
 # 0.4 Set up directories
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep
