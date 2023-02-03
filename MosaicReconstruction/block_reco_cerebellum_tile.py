@@ -20,7 +20,7 @@ verboseExtra = True  # True: more information
 pad_sinogram = 3000  # pad sinogram on both sides with n pixels
 
 # Input: Dataset to process
-paramfile = "/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile5.txt"
+paramfile = "/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile7.txt"
 print('Using ' + paramfile)
 
 # 0.2 Read param file
