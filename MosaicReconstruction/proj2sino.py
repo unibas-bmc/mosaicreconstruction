@@ -12,7 +12,7 @@ import gc
 t0 = time.time()
 
 # Input: Dataset to process
-paramfile = "/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile7.txt"
+paramfile = "/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/cerebellum_tile6.txt"
 print('Using ' + paramfile)
 
 # 0.2 Read param file
