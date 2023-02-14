@@ -340,13 +340,12 @@ def _main():
 
     param_dir = "/home/mattia/Documents/Cerebellum22/" \
             + "MosaicReconstruction/example/param_files/"
-    tile1 = [1, 1, 1, 2, 3]
-    tile2 = [2, 3, 4, 3, 4]
-    paths = [[1, 2],
-            [1, 3], [1, 2, 3], [1, 4, 3],
-            [1, 4], [1, 3, 4]]
 
-    # overlap_displacement(param_dir, tile1, tile2, plot=False)
+    # overlap_displacement(param_dir, 7, 2, plot=False)
+
+    tile1 = [1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 7]
+    tile2 = [2, 3, 4, 5, 6, 7, 3, 4, 5, 6, 7, 2]
+    paths = [[1, 7], [1, 6, 7]]
     absolute_displacement(param_dir, tile1, tile2, paths)
 
 
