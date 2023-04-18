@@ -8,7 +8,7 @@ import tifffile
 import SimpleITK as sitk
 import os
 
-
+# python class to represent information from the param and info file
 class RecoParam:
     def __init__(self, paramfile):
         print("Reading parameter file: {}".format(paramfile))
@@ -85,6 +85,9 @@ class RecoParam:
         self.recowidth = tif.pages[0].shape[0]
 
 
+# determine if rectangle r (given by a list of its vertices) is
+# contained in the intersection area of two circles, both with
+# radius R, centered at x and y, respectively.
 def rect_is_contained(r, x, y, R):
     d = norm(r - x.reshape(1,2), axis=1)
     if not np.all(d < R):
@@ -95,6 +98,7 @@ def rect_is_contained(r, x, y, R):
     return True
 
 
+# grow a rectangle by one unit in each dimension
 def rect_grow(r):
     return r + np.array([
             [-1, -1],
@@ -104,6 +108,8 @@ def rect_grow(r):
         ])
 
 
+# find the regions in two scans that should correspond to the
+# same rectangle in the overlap region
 def overlap_rects(param1, param2, ratio=0.9, plot=False):
 
     print("Find overlap for radii with ratio: {}".format(ratio))
@@ -184,7 +190,7 @@ def overlap_rects(param1, param2, ratio=0.9, plot=False):
 
     return s1, s2, disp
 
-
+# load a certain AOI from a reconstructed volume
 def load_volume(param, roi):
     # roi passed as slices in the zyx order
     zrange = [roi[0].start, roi[0].stop]
@@ -204,6 +210,8 @@ def load_volume(param, roi):
     return vol
 
 
+# run elastix to find the correct displacement(s) between tiles
+# write the result to a file
 def overlap_displacement(param_dir, tile1, tile2, plot=False):
 
     if hasattr(tile1, '__len__'):
@@ -275,6 +283,7 @@ def overlap_displacement(param_dir, tile1, tile2, plot=False):
     np.savetxt(dispfile, disp)
 
 
+# load an elastix transform parameter map
 def load_transform_parameter_map(param_dir, tile1, tile2):
 
     param1 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile1))
@@ -293,6 +302,7 @@ def load_transform_parameter_map(param_dir, tile1, tile2):
     return transform
 
 
+# load from a displacement file
 def load_displacement(param_dir, tile1, tile2):
 
     param1 = RecoParam("{}cerebellum_tile{}.txt".format(param_dir, tile1))
@@ -308,6 +318,7 @@ def load_displacement(param_dir, tile1, tile2):
     return transform
 
 
+# given a list of displacements, pick the right one
 def pick_disp(disp, tl1, tl2, t1, t2):
     for i in range(disp.shape[0]):
         if tl1[i] == t1 and tl2[i] == t2:
@@ -317,6 +328,8 @@ def pick_disp(disp, tl1, tl2, t1, t2):
     raise IndexError("displacement {}-{} does not exist".format(t1, t2))
 
 
+# given a list of displacements, calculate the total displacement
+# for a path
 def path_displacement(disp, tl1, tl2, path):
     path_disp = np.zeros((3,))
     for i in range(len(path) - 1):
@@ -324,6 +337,8 @@ def path_displacement(disp, tl1, tl2, path):
     return path_disp
 
 
+# for a list of tiles, load all displacements and calculate
+# the total along a given list of paths
 def absolute_displacement(param_dir, tile1, tile2, paths):
     n = len(tile1)
     disp = np.empty((n, 3))
