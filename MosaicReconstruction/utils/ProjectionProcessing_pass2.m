@@ -1,6 +1,10 @@
-function [writedir] = ProjectionProcessing_pass2(paramfile,manstitchpos)
-%% Stitching and generating mean
-% % Input: Dataset to process and stitch positions
+function [writedir] = ProjectionProcessing_pass2(paramfile,manstitchpos,...
+    translation)
+arguments
+    paramfile
+    manstitchpos
+    translation = 0
+end
 %% 0.1 Toolboxes
 addpath(genpath('./utils'))
 %% 0.2 Read param file
@@ -72,8 +76,12 @@ if not(isfolder(basedir)); mkdir(basedir); end
 writedir = [basedir 'proj' filesep];
 if not(isfolder(writedir)); mkdir(writedir); end
 %% 0.6 Overlap positions
+if any(translation, 'all')
+    manstitchpos = round(manstitchpos - translation(:,1)');
+    translation = cumsum(translation(:,2:3));
+end
 stitchposy = [0,cumsum(manstitchpos)];
-fullheight = ceil(datsize(2)+sum(manstitchpos)); 
+fullheight = ceil(datsize(2)+sum(manstitchpos));
 %% 1.0 Ring correction, filtering, stitching, saving
 tmp = h5read([readdir 'proj_uf_h' num2str(1) '_p' num2str(1,'%04d') ...
     '.h5'], '/proj'); % TODO: optimize e.g. by using h5info
@@ -83,6 +91,12 @@ clear tmp
 % write angles
 h5create([writedir 'angles.h5'], '/angles', size(angles))
 h5write([writedir 'angles.h5'], '/angles', angles)
+
+% write angles
+if ~isfile([writedir 'angles.h5'])
+    h5create([writedir 'angles.h5'], '/angles', size(angles))
+    h5write([writedir 'angles.h5'], '/angles', angles)
+end
 
 % read ring correction images
 rproj = zeros(sy,sx,nhs,'single');
@@ -121,16 +135,27 @@ blendmasky = single(blendmasky);
 
 % start filtering, blending
 fprintf('Ring correcting, blending, and saving projections...\n'); tic;
-parfor p = 1:ip180
+for p = 1:ip180 % TODO revert to parfor
     proj = zeros(sy,sx,nhs,'single');
     for h = 1:nhs
         proj(:,:,h) = h5read([readdir 'proj_uf_h' num2str(hs_range(h)) ...
             '_p' num2str(p,'%04d') '.h5'], '/proj')
     end
     proj = proj-rproj;
-    proj = flipud(proj);
+    % translation between height steps in horizontal direction
+    if any(translation, 'all')
+        alpha = angles(p) * pi / 180.;
+        for h = 1:nhs-1
+            tx = translation(h,1);
+            ty = translation(h,2);
+            d_alpha = -ty * cos(alpha) + tx * sin(alpha);
+            proj(:,:,h+1) = subpixelshift(proj(:,:,h+1), 0, d_alpha);
+        end
+    end
+    % TODO
+    % proj = flipud(proj);
     
-    ebump = 10;
+    ebump = 1;
     for h = fliplr(1:nhs-1)
         olregi = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2);
         olregi = datsize(2)-length(olregi)+1:datsize(2);
@@ -146,12 +171,14 @@ parfor p = 1:ip180
         proj(:,:,h) = (overlapMeanP1/overlapMean)*proj(:,:,h);
     end
     
-    fullproj = zeros(fullheight,sx,nhs);
+    fullproj = zeros(fullheight,sx,nhs,'single');
     for h = 1:nhs
         fullproj(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2),:,h) = proj(:,:,h);
     end
     fullproj = sum(fullproj.*blendmasky,3); 
-    fullproj = flipud(fullproj);
+    
+    % TODO
+    % fullproj = flipud(fullproj);
         
     fullproj = filtfunc(fullproj);
     fullproj = single(fullproj);

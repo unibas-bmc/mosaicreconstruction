@@ -91,9 +91,13 @@ if not(isfolder([procdir 'stitched_proj_filtered' filesep])); mkdir([procdir 'st
 datsize = ReadScanSize([rawbasedir ringnames{1} filesep ringnames{1} '.nxs'],h5ImagePath);
 
 [angles,ip180] = ReadAngles([rawbasedir ringnames{1} filesep ringnames{1} '.nxs'],h5AnglePath);
-if not(isfield(infoStruct,'ycrop'))
-ycrop = 1:datsize(1); 
-end
+% % commented out by Mattia: it's deceptive if the ycrop passed to the
+% % function is not respected
+% % also this is a logical fallacy: the ycrop from the param file is
+% % ignored in both cases
+% if not(isfield(infoStruct,'ycrop'))
+% ycrop = 1:datsize(1); 
+% end
 osy = length(ycrop); % output size y
 %% 0.6 Load overlap positions
 %tmpdir = [procdir 'parameters' filesep];

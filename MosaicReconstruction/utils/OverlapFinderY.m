@@ -84,8 +84,9 @@ promsmat = zeros(length(prange),nhs-1);
 locsmat = zeros(length(prange),nhs-1);
 promsmat1 = zeros(length(prange),nhs-1);
 locsmat1 = zeros(length(prange),nhs-1);
-for h = 1:nhs-1
-fprintf('Working on heights %d and %d (%d/%d)\n',h,h+1,h,nhs-1)
+for hi = 1:nhs-1
+h = hs_range(hi);
+fprintf('Working on heights %d and %d (%d/%d)\n',h,h+1,hi,nhs-1)
 tic
 figure
 title(['Heights ' num2str(h) ' and ' num2str(h+1)])
@@ -94,19 +95,21 @@ hold on
 for p = 1:length(prange)
     imr1 = filtfunc(imread([readdir 'proj_uf_h' num2str(h) '_p' num2str(p,'%04d') '.tif']));
     imr2 = filtfunc(imread([readdir 'proj_uf_h' num2str(h+1) '_p' num2str(p,'%04d') '.tif']));
+    imr1 = flipud(imr1);
+    imr2 = flipud(imr2);
     
     ccwin1 = datsize(2)-windowwidth+1:datsize(2);
     imr1c = imr1(ccwin1,:);
     
-    quickRange = pixshifts(h)+((-ceil(olsearchrangecoarse/2)+1):floor(olsearchrangecoarse/2));
+    quickRange = pixshifts(hi)+((-ceil(olsearchrangecoarse/2)+1):floor(olsearchrangecoarse/2));
     quickccval = zeros(1,length(quickRange));
     parfor il = 1:length(quickRange)
         timr2c = subpixelshift(imr2,quickRange(il),0);
         timr2c = timr2c(ccwin1,:);
         quickccval(il) = corr2(imr1c,timr2c);
     end
-    quickscanRanges(:,p,h) = quickRange;
-    quickccvals(:,p,h) = quickccval;
+    quickscanRanges(:,p,hi) = quickRange;
+    quickccvals(:,p,hi) = quickccval;
     
     [~,locs,~,proms] = findpeaks(quickccval);
     [~,I] = sort(proms,'descend');
@@ -130,9 +133,9 @@ for p = 1:length(prange)
         ccval(il) = corr2(imr1c,timr2c);
     end
     this_ol = scanRange(ccval==max(ccval));
-    scanRanges(:,p,h) = scanRange;
-    ccvals(:,p,h) = ccval;
-    ols(p,h) = this_ol;
+    scanRanges(:,p,hi) = scanRange;
+    ccvals(:,p,hi) = ccval;
+    ols(p,hi) = this_ol;
     
     [~,locs,~,proms] = findpeaks(ccval);
     [~,I] = sort(proms,'descend');
@@ -143,11 +146,11 @@ for p = 1:length(prange)
         locsvec = round(length(scanRange)/2);
         promsvec = 0;
     end
-    promsmat(p,h) = promsvec;
-    locsmat(p,h) = locsvec;
+    promsmat(p,hi) = promsvec;
+    locsmat(p,hi) = locsvec;
     
-    tmp = plot(quickscanRanges(:,p,h),quickccvals(:,p,h),'.-','DisplayName',[num2str(prange(p))]);
-    plot(scanRanges(:,p,h),ccvals(:,p,h),'.-','HandleVisibility','off','Color',tmp.Color)
+    tmp = plot(quickscanRanges(:,p,hi),quickccvals(:,p,hi),'.-','DisplayName',[num2str(prange(p))]);
+    plot(scanRanges(:,p,hi),ccvals(:,p,hi),'.-','HandleVisibility','off','Color',tmp.Color)
     drawnow
 end
 toc

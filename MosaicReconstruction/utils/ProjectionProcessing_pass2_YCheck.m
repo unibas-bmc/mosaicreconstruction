@@ -111,6 +111,7 @@ blendmasky = single(blendmasky);
 % start filtering, blending
 fprintf('Ring correcting, blending, and saving projections...\n'); tic;
 parfor p = 1:ip180
+    fprintf('Projection %d\n', p);
     proj = zeros(sy,sx,nhs,'single');
     for h = 1:nhs
         t = Tiff([readdir 'proj_uf_h' num2str(hs_range(h)) '_p' num2str(p,'%04d') '.tif'], 'r');

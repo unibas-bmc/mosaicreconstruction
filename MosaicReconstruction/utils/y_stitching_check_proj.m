@@ -60,7 +60,7 @@ if not(isfolder(writedir)); mkdir(writedir); end
 stitchposy = [0,cumsum(manstitchpos)];
 fullheight = ceil(datsize(2)+sum(manstitchpos)); 
 %% 1.0 Ring correction, filtering, stitching, saving
-t = Tiff([readdir 'proj_uf_h' num2str(1) '_p' num2str(1,'%04d') '.tif'], 'r');
+t = Tiff([readdir 'proj_uf_h' num2str(hs_range(1)) '_p' num2str(1,'%04d') '.tif'], 'r');
 tmp = read(t); close(t);
 [sy,sx] = size(tmp);
 
@@ -118,7 +118,8 @@ parfor ip = 1:length(proj_nr)
         proj(:,:,h) = read(t); close(t);
     end
     proj = proj-rproj;
-    % proj = flipud(proj);
+    % TODO: under what circumstances does this need to be commented out?
+    proj = flipud(proj);
     
     ebump = 10;
     for h = fliplr(1:nhs-1)
