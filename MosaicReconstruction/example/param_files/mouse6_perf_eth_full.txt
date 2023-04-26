@@ -6,10 +6,10 @@ samplename	mouse6_perf_eth
 heightstep	1-8
 
 // location of excel sheet that tells which scans belong to which heights and rings
-infofile	/media/griffin/_home3/handover/MosaicReconstruction/example/param_files/mouse6_perf_eth_info.xlsx
+infofile	/media/bmc/_home3/handover/MosaicReconstruction/example/param_files/mouse6_perf_eth_info.xlsx
 
 // where raw scan data is stored (all heights and rings should be in one directory)
-rawdatapath	/media/griffin/soleil_july2021_disk3/
+rawdatapath	/media/bmc/soleil_july2021_disk3/
 
 // h5 paths
 //	You can use HDFView or matlab's h5info to explore .nxs/.h5 file structure
@@ -19,11 +19,11 @@ h5AnglePath	/flyscan_0001/scan_data/tomo1Rz1
 // Paths for writing intermediate and final outputs:
 // 	Note: a sub-directory will be made using the samplename field
 // path for flat/dark corrected, stitched projections
-projpath	/media/griffin/griffin_disk11/anatomix_mousebrain/
+projpath	/media/bmc/griffin_disk11/anatomix_mousebrain/
 // path for final projections (flat/dark corrected, stitched, filtered, ring corrected)
-projpath2	/media/griffin/griffin_disk11/anatomix_mousebrain/
+projpath2	/media/bmc/griffin_disk11/anatomix_mousebrain/
 // reco will go in a sub-directory samplename/reco/
-recopath	/media/griffin/griffin_disk11/anatomix_mousebrain/
+recopath	/media/bmc/griffin_disk11/anatomix_mousebrain/
 
 // Filtering
 // options are "paganin", "gauss", or "none"
