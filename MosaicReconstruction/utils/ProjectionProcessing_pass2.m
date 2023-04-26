@@ -135,7 +135,7 @@ blendmasky = single(blendmasky);
 
 % start filtering, blending
 fprintf('Ring correcting, blending, and saving projections...\n'); tic;
-for p = 1:ip180 % TODO revert to parfor
+parfor p = 1:ip180
     proj = zeros(sy,sx,nhs,'single');
     for h = 1:nhs
         proj(:,:,h) = h5read([readdir 'proj_uf_h' num2str(hs_range(h)) ...
@@ -152,8 +152,7 @@ for p = 1:ip180 % TODO revert to parfor
             proj(:,:,h+1) = subpixelshift(proj(:,:,h+1), 0, d_alpha);
         end
     end
-    % TODO
-    % proj = flipud(proj);
+    proj = flipud(proj);
     
     ebump = 1;
     for h = fliplr(1:nhs-1)
@@ -177,8 +176,7 @@ for p = 1:ip180 % TODO revert to parfor
     end
     fullproj = sum(fullproj.*blendmasky,3); 
     
-    % TODO
-    % fullproj = flipud(fullproj);
+    fullproj = flipud(fullproj);
         
     fullproj = filtfunc(fullproj);
     fullproj = single(fullproj);
