@@ -459,7 +459,7 @@ manstitchposy = 1839;
 ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16)
 xcrop = 6000; % number of pixels to crop projections from both sides
 % projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
-projsavedir = ProjectionProcessing_pass2_YCheck_v2(paramfile,manstitchposy,hs,ycrop1,xcrop);
+projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,xcrop);
 
 tmp1 = dir([projsavedir 'proj1_*.tif']);
 tmp2 = dir([projsavedir 'proj2_*.tif']);
@@ -539,6 +539,47 @@ parfor y = 1:sy
 end
 
 mha_write(permute(reco2_shift, [3,2,1]), [testdir 'overlap2_shift_reco']);
+
+%% Test blending of y-stitched translated projections
+% Requires ProjectionProcessing_pass1 has been run for hs in question
+
+% set up a directory for tests
+testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
+if not(isfolder(testdir)); mkdir(testdir); end
+
+% Which overlap?
+hs = 7; % 1 is 1-2, 2 is 2-3, etc.§
+
+manstitchposy_list = [1835,1843,1843,1847,1847,1848,1839];
+translation_list = [-0.664023, -5.645471,  1.051685;...
+    0.236059, 0.497671,   -3.858646;...
+    0.528731, 0.774861,   -3.760332;...
+    -0.255347, 1.581965,   -2.778743;...
+    3.836355, 4.420312,   -5.637497;...
+    7.248668, 7.995099,   -2.645331;...
+    -5.286473, 8.250312,   -1.135933];
+
+% stitch position for this overlap
+manstitchposy = manstitchposy_list(hs);
+translation = translation_list(hs);
+ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16)
+xcrop = 490; % number of pixels to crop projections from both sides
+% projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
+projsavedir = ProjectionProcessing_pass2_YCheck(...
+    paramfile,manstitchposy,hs,ycrop1,xcrop,translation);
+
+tmp1 = dir([projsavedir 'proj1_*.tif']);
+tmp2 = dir([projsavedir 'proj2_*.tif']);
+tmpim = imread([tmp1(1).folder filesep tmp1(1).name]);
+[sy,sx] = size(tmpim);
+vol1 = zeros(sy,sx,length(tmp1),'single');
+vol2 = zeros(sy,sx,length(tmp2),'single');
+for i = 1:length(tmp1)
+    vol1(:,:,i) = imread([tmp1(i).folder filesep tmp1(i).name]);
+end
+for i = 1:length(tmp2)
+    vol2(:,:,i) = imread([tmp2(i).folder filesep tmp2(i).name]);
+end
 
 %% Test filtering and ring correction parameters
 % % set up a directory for tests
