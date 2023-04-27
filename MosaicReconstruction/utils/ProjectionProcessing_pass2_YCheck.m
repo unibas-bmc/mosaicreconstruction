@@ -1,4 +1,14 @@
-function [writedir] = ProjectionProcessing_pass2_YCheck(paramfile,manstitchpos,hs,ycrop1,ycrop2)
+function [writedir] = ProjectionProcessing_pass2_YCheck(...
+    paramfile,manstitchpos,hs,ycrop1,ycrop2,translation)
+arguments
+    paramfile
+    manstitchpos
+    hs
+    ycrop1
+    ycrop2
+    translation = 0
+end
+
 %% Stitching and generating mean
 % % Input: Dataset to process and stitch positions
 %% 0.1 Toolboxes
@@ -57,6 +67,10 @@ if not(isfolder(basedir)); mkdir(basedir); end
 writedir = [basedir 'proj_y_test' filesep];
 if not(isfolder(writedir)); mkdir(writedir); end
 %% 0.6 Overlap positions
+if any(translation, 'all')
+    manstitchpos = round(manstitchpos - translation(:,1)');
+    translation = cumsum(translation(:,2:3));
+end
 stitchposy = [0,cumsum(manstitchpos)];
 fullheight = ceil(datsize(2)+sum(manstitchpos)); 
 %% 1.0 Ring correction, filtering, stitching, saving
@@ -118,6 +132,16 @@ parfor p = 1:ip180
         proj(:,:,h) = read(t); close(t);
     end
     proj = proj-rproj;
+    % translation between height steps in horizontal direction
+    if any(translation, 'all')
+        alpha = angles(p) * pi / 180.;
+        for h = 1:nhs-1
+            tx = translation(h,1);
+            ty = translation(h,2);
+            d_alpha = -ty * cos(alpha) + tx * sin(alpha);
+            proj(:,:,h+1) = subpixelshift(proj(:,:,h+1), 0, d_alpha);
+        end
+    end
     proj = flipud(proj);
     
     ebump = 10;
