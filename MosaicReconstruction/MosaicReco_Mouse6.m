@@ -561,7 +561,7 @@ translation_list = [-0.664023, -5.645471,  1.051685;...
 
 % stitch position for this overlap
 manstitchposy = manstitchposy_list(hs);
-translation = translation_list(hs);
+translation = translation_list(hs,:);
 ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16)
 xcrop = 490; % number of pixels to crop projections from both sides
 % projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
