@@ -548,7 +548,7 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % Which overlap?
-hs = 7; % 1 is 1-2, 2 is 2-3, etc.§
+hs = 4; % 1 is 1-2, 2 is 2-3, etc.§
 
 manstitchposy_list = [1835,1843,1843,1847,1847,1848,1839];
 translation_list = [-0.664023, -5.645471,  1.051685;...
