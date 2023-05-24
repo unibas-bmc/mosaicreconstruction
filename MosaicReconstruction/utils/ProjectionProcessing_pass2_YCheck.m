@@ -142,7 +142,7 @@ parfor p = 1:ip180
             proj(:,:,h+1) = subpixelshift(proj(:,:,h+1), 0, d_alpha);
         end
     end
-    proj = flipud(proj);
+    % proj = flipud(proj);
     
     ebump = 10;
     for h = fliplr(1:nhs-1)
@@ -162,7 +162,7 @@ parfor p = 1:ip180
         fullproj(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2),:,h) = proj(:,:,h);
     end
     fullproj = sum(fullproj.*blendmasky,3); 
-    fullproj = flipud(fullproj);
+    % fullproj = flipud(fullproj);
     
     
     fullproj = single(fullproj);
