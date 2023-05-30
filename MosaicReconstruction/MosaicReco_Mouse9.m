@@ -1,4 +1,4 @@
-%% Mosaic reconstruction for "mouse6_perf_eth"
+%% Mosaic reconstruction for "mouse9_perf_eth"
 
 %% Toolboxes
 addpath(genpath('./utils'))
@@ -13,7 +13,7 @@ prepimage = @(im,vr) uint8(255*(double(im)-vr(1))/(vr(2)-vr(1)));
 prepimagei16 = @(im,vr) uint16((2^16-1)*(double(im)-vr(1))/(vr(2)-vr(1)));
 
 %% Param file
-paramfile = './example/param_files/mouse6_perf_eth_full.txt';
+paramfile = './example/param_files/mouse9_perf_eth_full.txt';
 
 %% Read a few useful variables from the param file
 fid = fopen(paramfile);
