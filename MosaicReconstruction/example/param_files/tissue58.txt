@@ -6,7 +6,7 @@ samplename	tissue58
 heightstep	1-7
 
 // location of excel sheet that tells which scans belong to which heights and rings
-infofile	/media/bmc/_home3/handover/MosaicReconstruction/example/param_files/tissue58.xlsx
+infofile	/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/tissue58.xlsx
 
 // where raw scan data is stored (all heights and rings should be in one directory)
 rawdatapath	/media/mattia/Soleil_2023_Disk2/nxs/
