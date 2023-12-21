@@ -13,7 +13,7 @@ fclose(fid);
 
 T = readtable(infofile); 
 scandir = T.scandir{1};
-this_suffix = T.suffix(1);
+this_suffix = T.suffix{1};
 if this_suffix == 0
     scansuffix = '';
 else
