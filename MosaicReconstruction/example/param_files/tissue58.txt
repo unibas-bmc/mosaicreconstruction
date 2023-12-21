@@ -13,8 +13,8 @@ rawdatapath	/media/mattia/Soleil_2023_Disk2/nxs/
 
 // h5 paths
 //	You can use HDFView or matlab's h5info to explore .nxs/.h5 file structure
-h5ImagePath	/flyscan_0001/scan_data/orca_image
-h5AnglePath	/flyscan_0001/scan_data/tomo1Rz1
+h5ImagePath	/flyscan_0003/scan_data/orca_image
+h5AnglePath	/flyscan_0003/scan_data/tomo1Rz1
 
 // Paths for writing intermediate and final outputs:
 // 	Note: a sub-directory will be made using the samplename field
