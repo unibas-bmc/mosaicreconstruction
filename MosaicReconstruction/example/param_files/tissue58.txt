@@ -3,7 +3,7 @@ Name	Value
 samplename	tissue58
 
 // for a single height, put one number, for multiple use a dash, i.e. 1-3
-heightstep	2-7
+heightstep	1-7
 
 // location of excel sheet that tells which scans belong to which heights and rings
 infofile	/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/tissue58.xlsx
