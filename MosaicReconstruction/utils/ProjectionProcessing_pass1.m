@@ -79,16 +79,26 @@ if not(isfolder([basedir])); mkdir([basedir]); end
 % directory for writing projections:
 writedir = [basedir 'stitched_proj_filtered' filesep];
 if not(isfolder(writedir)); mkdir(writedir); end
-%% 0.6 Overlap positions (we will use same for all heights -- I checked this was okay)
+%% 0.6 Overlap positions
+%% If manstitchpos has size [1, nrings], take the same stitching positions
+%% for all height steps, otherwise use manstitchpos(h,:) for height step h.
 % tmpdir = [procdir 'parameters' filesep];
 % load([tmpdir 'stitching_parameters.mat'],'ol_final_subpix','corpix_subpix','fullwidth','stitchpos','halfwidth')
-corpix_subpix = manstitchpos(1);
-ol_final_subpix = manstitchpos(2:end);
-stitchpos = [0,cumsum(ol_final_subpix)];
-halfwidth = ceil(datsize(2)+sum(ol_final_subpix));
-fullwidth = halfwidth*2-ceil(corpix_subpix);
+corpix_subpix_l = manstitchpos(:,1);
+ol_final_subpix_l = manstitchpos(:,2:end);
+halfwidth_l = ceil(datsize(2)+sum(ol_final_subpix_l,2));
+fullwidth_l = halfwidth_l*2-ceil(corpix_subpix_l);
+fullwidth_min = min(fullwidth_l);
 %% 1.0 Loop over heights
 for h = 1:nhs
+corpix_subpix = corpix_subpix_l(h,:);
+ol_final_subpix = ol_final_subpix_l(h,:);
+halfwidth = halfwidth_l(h,:);
+fullwidth = fullwidth_l(h,:);
+stitchpos = [0,cumsum(ol_final_subpix)];
+% worst case we crop asymetrically by 1 pixel
+crop_left = ceil((fullwidth - fullwidth_min) / 2);
+crop_right = fullwidth - fullwidth_min - crop_left;
 th = hs_range(h);
 fprintf('Working on height %d (%d/%d)\n',th,h,nhs)
 %% 1.1 Flats/darks loading
@@ -107,7 +117,7 @@ clear darks flats tmp1 tmp
 %% 1.2 Flat/dark correction, gain/offset/zinger, stitching, saving
 % tiff settings ()
 tagstruct.ImageLength = osy; % y
-tagstruct.ImageWidth = fullwidth; % x
+tagstruct.ImageWidth = fullwidth_min; % x
 tagstruct.BitsPerSample = 32; % single precission
 tagstruct.RowsPerStrip = stripheight; % strip size (faster loading of strips)
 tagstruct.SamplesPerPixel = 1;
@@ -159,7 +169,7 @@ end
 
 % start filtering, blending, stitching
 fprintf('Stitching and saving projections...\n'); tic;
-mproj = zeros(osy,fullwidth,'single');
+mproj = zeros(osy,fullwidth_min,'single');
 parfor p = 1:ip180
     % load, flat/dark correct, filter, and subpixel shift
     rim0 = zeros(osy,datsize(2),nrings);
@@ -262,23 +272,34 @@ parfor p = 1:ip180
     fullproj = fullproj(:,bump+1:end-bump); % knock off edges
     fullproj = padarray(fullproj,[0,bump],'symmetric','both');
     
+    % crop to uniform width
+    if crop_left > crop_right
+        fullproj = subpixelshift(fullproj, 0, 0.5);
+    end
+    fullproj = fullproj(:,crop_left+1:fullwidth-crop_right);
+
     % add to mean projection
     mproj = mproj + (fullproj/ip180);
     
-    % write to tiff file
+    % write to HDF5 file
     fullproj = single(fullproj);
-    t = Tiff([writedir 'proj_uf_h' num2str(th) '_p' num2str(p,'%04d') '.tif'], 'w');
-    t.setTag(tagstruct); t.write(fullproj); t.close();
+    fullproj_filename = [writedir 'proj_uf_h' num2str(th) '_p' ...
+        num2str(p,'%04d') '.h5'];
+    h5create(fullproj_filename, '/proj', size(fullproj), ...
+        Datatype='single');
+    h5write(fullproj_filename, '/proj', fullproj);
 end
 toc
 mproj_m150 = medfilt2(mproj,[150,150]);
 rproj = -(mproj-mproj_m150);
 rproj = single(rproj); % ring profile
 mproj = single(mproj); % mean projection
-t = Tiff([writedir 'rproj_h' num2str(th) '.tif'], 'w');
-t.setTag(tagstruct); t.write(rproj); t.close();
-t = Tiff([writedir 'mproj_h' num2str(th) '.tif'], 'w');
-t.setTag(tagstruct); t.write(mproj); t.close();
+rproj_filename = [writedir 'rproj_h' num2str(th) '.h5'];
+h5create(rproj_filename, '/proj', size(rproj), Datatype='single');
+h5write(rproj_filename, '/proj', rproj);
+mproj_filename = [writedir 'mproj_h' num2str(th) '.h5'];
+h5create(mproj_filename, '/proj', size(mproj), Datatype='single');
+h5write(mproj_filename, '/proj', mproj);
 end
 %%
 end

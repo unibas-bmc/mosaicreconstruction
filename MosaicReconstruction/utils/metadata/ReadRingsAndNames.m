@@ -15,7 +15,7 @@ for io = 1:nhs
     for c = 1:nrings
         scandir = T.scandir{loopind(c)};
         ringNo = T.ring(loopind(c));
-        this_suffix = T.suffix(loopind(c));
+        this_suffix = T.suffix{loopind(c)};
         if this_suffix == 0
             scansuffix = '';
         else

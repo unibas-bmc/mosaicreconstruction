@@ -1,6 +1,7 @@
 function [txpos] = ReadTxPos(parfile)
 myStr1 = '#tomo1tx = '; lenStr1 = length(myStr1);
 
+fprintf("%s\n", parfile);
 fid=fopen(parfile);
 i = 1;
 tline = fgetl(fid);

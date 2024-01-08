@@ -1,6 +1,10 @@
-function [writedir] = ProjectionProcessing_pass2(paramfile,manstitchpos)
-%% Stitching and generating mean
-% % Input: Dataset to process and stitch positions
+function [writedir] = ProjectionProcessing_pass2(paramfile,manstitchpos,...
+    translation)
+arguments
+    paramfile
+    manstitchpos
+    translation = 0
+end
 %% 0.1 Toolboxes
 addpath(genpath('./utils'))
 %% 0.2 Read param file
@@ -40,6 +44,9 @@ else
     ycrop = 1:datsize;
 end
 osy = length(ycrop); % output size y
+if osy < datsize(2)
+    datsize(2) = osy;
+end
 
 [angles,ip180] = ReadAngles([rawbasedir ringnames{1,1} filesep ringnames{1,1} '.nxs'],h5AnglePath);
 
@@ -69,55 +76,61 @@ if not(isfolder(basedir)); mkdir(basedir); end
 writedir = [basedir 'proj' filesep];
 if not(isfolder(writedir)); mkdir(writedir); end
 %% 0.6 Overlap positions
+if any(translation, 'all')
+    manstitchpos = round(manstitchpos - translation(:,1)');
+    translation = cumsum(translation(:,2:3));
+end
 stitchposy = [0,cumsum(manstitchpos)];
-fullheight = ceil(datsize(2)+sum(manstitchpos)); 
+fullheight = ceil(datsize(2)+sum(manstitchpos));
 %% 1.0 Ring correction, filtering, stitching, saving
-t = Tiff([readdir 'proj_uf_h' num2str(1) '_p' num2str(1,'%04d') '.tif'], 'r');
-tmp = read(t); close(t);
+tmp = h5read([readdir 'proj_uf_h' num2str(1) '_p' num2str(1,'%04d') ...
+    '.h5'], '/proj'); % TODO: optimize e.g. by using h5info
 [sy,sx] = size(tmp);
 clear tmp
 
-% tiff settings ()
-tagstruct.ImageLength = fullheight; % y
-tagstruct.ImageWidth = sx; % x
-tagstruct.BitsPerSample = 32; % single precission
-tagstruct.RowsPerStrip = stripheight; % strip size (faster loading of strips)
-tagstruct.SamplesPerPixel = 1;
-tagstruct.Compression = Tiff.Compression.None;
-tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
-tagstruct.Photometric = Tiff.Photometric.LinearRaw;
-tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
+% write angles
+h5create([writedir 'angles.h5'], '/angles', size(angles))
+h5write([writedir 'angles.h5'], '/angles', angles)
+
+% write angles
+if ~isfile([writedir 'angles.h5'])
+    h5create([writedir 'angles.h5'], '/angles', size(angles))
+    h5write([writedir 'angles.h5'], '/angles', angles)
+end
 
 % read ring correction images
 rproj = zeros(sy,sx,nhs,'single');
 for h = 1:nhs
     th = hs_range(h);
-    t = Tiff([readdir 'mproj_h' num2str(th) '.tif'], 'r');
-    im = read(t); close(t);
+    im = h5read([readdir 'mproj_h' num2str(th) '.h5'], '/proj');
     rproj(:,:,h) = single(im-imgaussfilt(im,50,'Padding','symmetric'));
 end
 rproj(abs(rproj)>0.1) = 0;
 
 % create blending mask
-blendmasky = zeros(fullheight,sx,nhs);
-for h = 1:nhs
-    if h == 1
-        blendmasky(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-1,sx);
-        tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
-    elseif h == nhs
-        blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2),:,h) = ones(datsize(2)-1,sx);
-        tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
-    else
-        blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-2,sx);
-        tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
-        tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
-        blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
+if nhs == 1
+    blendmasky = ones(fullheight,sx,nhs);
+else
+    blendmasky = zeros(fullheight,sx,nhs);
+    for h = 1:nhs
+        if h == 1
+            blendmasky(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-1,sx);
+            tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
+        elseif h == nhs
+            blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2),:,h) = ones(datsize(2)-1,sx);
+            tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
+        else
+            blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2)-1,:,h) = ones(datsize(2)-2,sx);
+            tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
+            tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
+            blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
+        end
     end
+    blendmasky = blendmasky./sum(blendmasky,3);
 end
-blendmasky = blendmasky./sum(blendmasky,3);
 blendmasky = single(blendmasky);
 
 % start filtering, blending
@@ -125,13 +138,23 @@ fprintf('Ring correcting, blending, and saving projections...\n'); tic;
 parfor p = 1:ip180
     proj = zeros(sy,sx,nhs,'single');
     for h = 1:nhs
-        t = Tiff([readdir 'proj_uf_h' num2str(hs_range(h)) '_p' num2str(p,'%04d') '.tif'], 'r');
-        proj(:,:,h) = read(t); close(t);
+        proj(:,:,h) = h5read([readdir 'proj_uf_h' num2str(hs_range(h)) ...
+            '_p' num2str(p,'%04d') '.h5'], '/proj')
     end
     proj = proj-rproj;
-    proj = flipud(proj);
+    % translation between height steps in horizontal direction
+    if any(translation, 'all')
+        alpha = angles(p) * pi / 180.;
+        for h = 1:nhs-1
+            tx = translation(h,1);
+            ty = translation(h,2);
+            d_alpha = -ty * cos(alpha) + tx * sin(alpha);
+            proj(:,:,h+1) = subpixelshift(proj(:,:,h+1), 0, d_alpha);
+        end
+    end
+    % proj = flipud(proj);
     
-    ebump = 10;
+    ebump = 1;
     for h = fliplr(1:nhs-1)
         olregi = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2);
         olregi = datsize(2)-length(olregi)+1:datsize(2);
@@ -147,17 +170,20 @@ parfor p = 1:ip180
         proj(:,:,h) = (overlapMeanP1/overlapMean)*proj(:,:,h);
     end
     
-    fullproj = zeros(fullheight,sx,nhs);
+    fullproj = zeros(fullheight,sx,nhs,'single');
     for h = 1:nhs
         fullproj(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2),:,h) = proj(:,:,h);
     end
     fullproj = sum(fullproj.*blendmasky,3); 
-    fullproj = flipud(fullproj);
+    
+    % fullproj = flipud(fullproj);
         
     fullproj = filtfunc(fullproj);
     fullproj = single(fullproj);
-    t = Tiff([writedir 'proj_f_' num2str(p,'%04d') '.tif'], 'w');
-    t.setTag(tagstruct); t.write(fullproj); t.close();
+    h5create([writedir 'proj_f_' num2str(p,'%04d') '.h5'], '/proj',...
+        size(fullproj), Datatype='single');
+    h5write([writedir 'proj_f_' num2str(p,'%04d') '.h5'], '/proj',...
+        fullproj)
 end
 toc
 end

@@ -1,12 +1,12 @@
 Name	Value
 // this will be used to name directories where outputs go
-samplename	mouse6_perf_eth
+samplename	mouse9_perf_eth
 
 // for a single height, put one number, for multiple use a dash, i.e. 1-3
-heightstep	1-8
+heightstep	1-7
 
 // location of excel sheet that tells which scans belong to which heights and rings
-infofile	/media/bmc/_home3/handover/MosaicReconstruction/example/param_files/mouse6_perf_eth_info.xlsx
+infofile	/media/bmc/_home3/handover/MosaicReconstruction/example/param_files/mouse9_perf_eth_info.xlsx
 
 // where raw scan data is stored (all heights and rings should be in one directory)
 rawdatapath	/media/bmc/soleil_july2021_disk3/

@@ -2,4 +2,7 @@ misc/recoscripts_forWilly.zip
 *~
 .*.swp
 *.asv
+nohup.out
 __pycache__/
+example/figures/
+*.tif

@@ -1,9 +1,12 @@
-%% Mosaic reconstruction for "mouse6_perf_eth"
+%% Mosaic reconstruction for Cerebellum tiles
 
-%% Toolboxes
+%% 1.   Preparation
+
+%% 1.1. Toolboxes
+cd /home/mattia/Documents/Cerebellum22/MosaicReconstruction/
 addpath(genpath('./utils'))
 
-%% Useful functions
+%% 1.2. Useful functions
 cropaboutcenter = @(im,roisize) im(floor(size(im,1)/2)-floor(roisize(2)/2)+1:floor(size(im,1)/2)+floor(roisize(2)/2),...
     floor(size(im,2)/2-roisize(1)/2)+1:floor(size(im,2)/2+roisize(1)/2));
 cropto = @(im,roi) im(roi(3):roi(4),roi(1):roi(2));
@@ -12,10 +15,10 @@ croptostack = @(im,roi) im(roi(3):roi(4),roi(1):roi(2),:);
 prepimage = @(im,vr) uint8(255*(double(im)-vr(1))/(vr(2)-vr(1)));
 prepimagei16 = @(im,vr) uint16((2^16-1)*(double(im)-vr(1))/(vr(2)-vr(1)));
 
-%% Param file
-paramfile = './example/param_files/mouse6_perf_eth_full.txt';
+%% 1.3. Param file
+paramfile = './example/param_files/cerebellum_tile7.txt';
 
-%% Read a few useful variables from the param file
+%% 1.4. Read a few useful variables from the param file
 fid = fopen(paramfile);
 infoStruct = textscan(fid, '%s %s','Delimiter','\t','CommentStyle','//');
 infoStruct = cell2struct(infoStruct{2},infoStruct{1},size(infoStruct,1));
@@ -51,26 +54,27 @@ fclose(fid);
 pixsize_mm = ReadPixelSize_ParamFile(paramfile);
 [angles,ip180] = ReadAngles_ParamFile(paramfile,h5AnglePath);
 
-%% Path to python scripts
-pythonscript_fullpath = '/media/bmc/_home3/handover/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
+%% 1.5. Path to python scripts
+pythonscript_fullpath = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
 
-%% Build a roughly stitched mosaic projection
+%% 2.   Build a roughly stitched mosaic projection
 projNo = 1;
 medkernel = [7,7];
 gausskernel = 3;
 [proj,writedir] = PreviewStitchProjectionXY(paramfile,projNo,medkernel,gausskernel);
 
-%% Automatically find COR and X overlap positions (all height steps)
+%% 3.   Automatically find COR and X overlap positions (all height steps)
 [writedir] = OverlapFinderX(paramfile);
 
-%% Check selected overlap positions manually
+%% 3.1. Check selected overlap positions manually
 % % load automatically found positions
 stitchparamdir = [projdir samplename filesep 'parameters' filesep];
 olpix = zeros(nrings-1,nhs);
 corpix = zeros(1,nhs);
 for h = 1:nhs
     t = readtable([stitchparamdir 'stitching_parameters_h' num2str(h) '.csv']);
-    olpix(:,h) = [t.ol_final_subpix_1,t.ol_final_subpix_2,t.ol_final_subpix_3];
+    olpix(:,h) = [t.ol_final_subpix_1,t.ol_final_subpix_2,...
+        t.ol_final_subpix_3];
     corpix(h) = t.corpix_subpix;
 end
 
@@ -84,23 +88,12 @@ plot(a.XLim,[1,1]*nanmedian(corpix),'r:','LineWidth',2)
 text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num2str(nanmedian(corpix))])
 xlabel('height step'), ylabel('estimated COR position')
 
-%  manually select values to be used for all height steps
-% cor = 205;
-% s1x = 1848.3;
-% s2x = 1848.3;
-% s3x = 1848.3;
-% manstitchpos = [cor,s1x,s2x,s3x];
-autostitchpos = [corpix', olpix'];
-manstitchpos = [
-        207.6    1848.3    1844.6    1848.3;  % 1
-        205.9    1848.3    1848.3    1848.3;  % 2
-        205.3    1848.6    1848.6    1847.7;  % 3
-        205.4    1848.1    1848.6    1847.8;  % 4
-        205.0    1848.3    1848.3    1848.3;  % 5
-        205.0    1848.5    1846.0    1847.6;  % 6
-        203.6    1848.3    1848.3    1848.3;  % 7
-        204.6    1848.3    1848.3    1848.3;  % 8
-    ];
+% manually select values to be used for all height steps
+cor = 214;
+s1x = 1845.75;
+s2x = 1846.0;
+s3x = 1845.75;
+manstitchposx = [cor,s1x,s2x,s3x];
 
 % loop over heights, process projections for ycrop, reconstruct
 ycrop = 1017:1032;
@@ -113,9 +106,8 @@ roi = [14900,14900];
 recos = zeros(roi(2),roi(1),nhs,'single');
 for h = 1:nhs
     % build projections using above stitch positions for given height step
-    projdir = ProjectionProcessingManualEntry(paramfile,h,...
-        manstitchpos(h,:),...
-        ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
+    projdir = ProjectionProcessingManualEntry(paramfile,h,manstitchposx...
+        ,ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
         'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
     [sinoblock] = LoadCroppedSinoblock(projdir);
     % ring correction:
@@ -136,7 +128,7 @@ if isfile([testdir 'reco_manualoverlap_allhs.h5']); delete([testdir 'reco_manual
 h5create([testdir 'reco_manualoverlap_allhs.h5'],'/reco',size(recos),'Datatype','single')
 h5write([testdir 'reco_manualoverlap_allhs.h5'],'/reco',recos)
 
-%% Tweak overlap positions manually
+%% 4.   Tweak overlap positions manually
 % % set up a directory for tests
 testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
@@ -155,8 +147,8 @@ for i1 = 1:size(projvol,4)
     projvol_pag(:,:,:,i1) = filtfunc(projvol(:,:,:,i1));
 end
 
-% % check center of rotation
-corRange = 205.9-8:205.9+8;
+%% 4.1. check center of rotation
+corRange = 214-4:0.5:214+4;
 % note: motor position would be cor_guess, found position would be cor_subpix
 padSize = 2000;
 cropSize = [3000,3000];
@@ -191,11 +183,11 @@ for i1 = 1:length(corRange)
 end
 figure, imshow3D(recos_cor,prctile(recos_cor,[1,99],'all')')
 
-%% check stitching positions of each ring
+%% 4.2. check stitching positions of each ring
 % % Ring 1
-this_cor = 205.9;
+this_cor = 215;
 
-olpix1_range = 1850.4-5:1850.4+5;
+olpix1_range = 1845.5-5:1845.5+5;
 this_nrings = 2;
 
 padSize = 750;
@@ -274,7 +266,7 @@ for i1 = 1:length(olpix1_range)
 end
 
 %gsrange = prctile(recos_crop,[1,99],'all')';
-gsrange = [-0.01,0.075];
+gsrange = [0.0,0.12];
 
 figure, imshow3D(recos_crop,gsrange)
 
@@ -288,11 +280,11 @@ hold on
 rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
-%% Tweak any
-cor_range = 205.9;
-s1_range = 1848.3-8:1848.3+8;
-s2_range = 1848.3;
-s3_range = 1848.3;
+%% 4.3. Tweak any
+cor_range = 214;
+s1_range = 1845.75;
+s2_range = 1846.0-8:2:1846.0+8;
+s3_range = 1845.75;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
@@ -383,7 +375,7 @@ end
 end
 end
 
-gsrange = [-0.01,0.05];
+gsrange = [0.0,0.12];
 
 figure, imshow3D(squeeze(recos_crop),gsrange)
 
@@ -402,7 +394,7 @@ rectangle('Position',[cent(1)-rad(2),cent(2)-rad(2),rad(2)*2,rad(2)*2],'Curvatur
 rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvature',[1,1],...
     'EdgeColor','r','LineWidth',2)
 
-%% Processing projections pass 1
+%% 5.   Processing projections pass 1
 % first pass:
 %   - flat and dark correction
 %   - stitching in x
@@ -412,19 +404,15 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-manstitchposx = [
-        207.6    1848.3    1844.6    1848.3;  % 1
-        205.9    1848.3    1848.3    1848.3;  % 2
-        205.3    1848.6    1848.6    1847.7;  % 3
-        205.4    1848.1    1848.6    1847.8;  % 4
-        205.0    1848.3    1848.3    1848.3;  % 5
-        205.0    1848.5    1846.0    1847.6;  % 6
-        203.6    1848.3    1848.3    1848.3;  % 7
-        204.6    1848.3    1848.3    1848.3;  % 8
-    ];
+cor = 214;
+s1x = 1845.75;
+s2x = 1846.0;
+s3x = 1845.75;
+manstitchposx = [cor,s1x,s2x,s3x];
+
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
-%% Automatically find height step stitching positions (all height steps)
+%% 6.   Automatically find height step stitching positions (all height steps)
 % note: this is much more robust when using full stitched projections
 %
 % currently, OverlapFinderY runs after ProjectionProcessing_pass1
@@ -436,14 +424,7 @@ projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 % you go in the y overlap finder
 [writedir] = OverlapFinderY(paramfile);
 
-%% Check height step stitching positions in some projections
-
-manstitchposy = [1835,1843,1843,1847,1847,1848,1839];
-proj_nr = 1:500:4001;
-
-projsavedir = y_stitching_check_proj(paramfile,manstitchposy,proj_nr);
-
-%% Check height step stitching positions manually
+%% 7.   Check height step stitching positions manually
 % % Requires ProjectionProcessing_pass1 has been run for hs in question
 % Note: this section does not quite work yet, it should be adjusted
 
@@ -452,14 +433,14 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % Which overlap?
-hs = 7; % 1 is 1-2, 2 is 2-3, etc.§
+hs = 1; % 1 is 1-2, 2 is 2-3, etc.
 
 % stitch position for this overlap
-manstitchposy = 1839;
-ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16)
-xcrop = 6000; % number of pixels to crop projections from both sides
-% projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
-projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,xcrop);
+manstitchposy = 1848.3;
+ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16) 
+ycrop2 = 1833:1848; % region above overlap (length 16)
+% note: this is quite time consuming to run:
+projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
 
 tmp1 = dir([projsavedir 'proj1_*.tif']);
 tmp2 = dir([projsavedir 'proj2_*.tif']);
@@ -474,149 +455,38 @@ for i = 1:length(tmp2)
     vol2(:,:,i) = imread([tmp2(i).folder filesep tmp2(i).name]);
 end
 
-reco1 = zeros(sy, sx, sx, 'single');
-reco2 = zeros(sy, sx, sx, 'single');
+sino1 = squeeze(vol1(round(end/2),:,:));
+sino2 = squeeze(vol2(round(end/2),:,:));
 
-parfor y = 1:sy
-    reco1(y,:,:) = SingleGridrecReconstruction(...
-        [testdir 'overlap1_slice' num2str(y)],...
-        squeeze(vol1(y,:,:)),...
-        angles,...
-        pixsize_mm,...
-        pythonscript_fullpath);
-    reco2(y,:,:) = SingleGridrecReconstruction(...
-        [testdir 'overlap2_slice' num2str(y)],...
-        squeeze(vol2(y,:,:)),...
-        angles,...
-        pixsize_mm,...
-        pythonscript_fullpath);
-end
+reco1 = SingleGridrecReconstruction([testdir 'overlap'],sino1,angles,pixsize_mm,pythonscript_fullpath);
+reco2 = SingleGridrecReconstruction([testdir 'nooverlap'],sino2,angles,pixsize_mm,pythonscript_fullpath);
 
-fprintf(['writing volume 1 to ' testdir 'overlap1_reco.mhd\n'])
-mha_write(permute(reco1, [3 2 1]), [testdir 'overlap1_reco'])
-
-fprintf(['writing volume 2 to ' testdir 'overlap2_reco.mhd\n'])
-mha_write(permute(reco2, [3 2 1]), [testdir 'overlap2_reco'])
-
-fprintf('deleting temporaries\n')
-for h = 1:2
-    for y = 1:sy
-        delete([testdir 'overlap' num2str(h) '_slice' num2str(y) '.h5']);
-        delete([testdir 'overlap' num2str(h) '_slice' num2str(y) ...
-            '_reco.h5']);
-    end
-end
-
-%% Check translation of rotation center
-% We observed a displacement in the two subsequent height steps.
-% The displacement is determined with elastix.
-% Here the projections are individually shifted, to result in a translation
-% of the rotation center.
-% Previous step needs to be run first and y-stitching should already
-% have been adjusted.
-
-% tx and ty as output by elastix for EulerTransform,
-% i.e. for the mapping fixed->moving image
-% (TransformParameters thetax, thetay, thetaz, tx, ty, tz)
-tx = 8.25;
-ty = -5.29;
-
-angles_rad = angles * pi / 180.
-d_alpha = -ty * cos(angles_rad) + tx * cos(angles_rad);
-
-vol2_shift = zeros(sy, sx, length(angles), 'single');
-parfor i = 1:length(angles)
-    vol2_shift(:,:,i) = subpixelshift(vol2(:,:,i), 0, d_alpha(i));
-end
-
-reco2_shift = zeros(sy, sx, sx, 'single');
-parfor y = 1:sy
-    reco2_shift(y,:,:) = SingleGridrecReconstruction(...
-        [testdir 'overlap2_shift_slice' num2str(y)],...
-        squeeze(vol2_shift(y,:,:)),...
-        angles, pixsize_mm,...
-        pythonscript_fullpath);
-end
-
-mha_write(permute(reco2_shift, [3,2,1]), [testdir 'overlap2_shift_reco']);
-
-%% Test blending of y-stitched translated projections
-% Requires ProjectionProcessing_pass1 has been run for hs in question
-
-% set up a directory for tests
-testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
-if not(isfolder(testdir)); mkdir(testdir); end
-
-% Which overlap?
-hs = 4; % 1 is 1-2, 2 is 2-3, etc.§
-
-manstitchposy_list = [1835,1843,1843,1847,1847,1848,1839];
-translation_list = [-0.664023, -5.645471,  1.051685;...
-    0.236059, 0.497671,   -3.858646;...
-    0.528731, 0.774861,   -3.760332;...
-    -0.255347, 1.581965,   -2.778743;...
-    3.836355, 4.420312,   -5.637497;...
-    7.248668, 7.995099,   -2.645331;...
-    -5.286473, 8.250312,   -1.135933];
-
-% stitch position for this overlap
-manstitchposy = manstitchposy_list(hs);
-translation = translation_list(hs,:);
-ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16)
-ycrop2 = 1741:1756; % region not in overlap, i.e. smaller than manstitchposy (length 16)
-
-% projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
-projsavedir = ProjectionProcessing_pass2_YCheck(...
-    paramfile,manstitchposy,hs,ycrop1,ycrop2,translation);
-
-tmp1 = dir([projsavedir 'proj1_*.tif']);
-tmp2 = dir([projsavedir 'proj2_*.tif']);
-tmpim = imread([tmp1(1).folder filesep tmp1(1).name]);
-[sy,sx] = size(tmpim);
-vol1 = zeros(sy,sx,length(tmp1),'single');
-vol2 = zeros(sy,sx,length(tmp2),'single');
-for i = 1:length(tmp1)
-    vol1(:,:,i) = imread([tmp1(i).folder filesep tmp1(i).name]);
-end
-for i = 1:length(tmp2)
-    vol2(:,:,i) = imread([tmp2(i).folder filesep tmp2(i).name]);
-end
-
-slice = 8;
-SingleGridrecReconstruction([projsavedir ...
-    'reco1_' num2str(slice, '%04d')],squeeze(vol1(slice,:,:)),angles,...
-    pixsize_mm,...
-    pythonscript_fullpath);
-SingleGridrecReconstruction([projsavedir ...
-    'reco2_' num2str(slice, '%04d')],squeeze(vol2(slice,:,:)),angles,...
-    pixsize_mm,...
-    pythonscript_fullpath);
-
-%% Test filtering and ring correction parameters
+%% 8.   Test filtering and ring correction parameters
 % % set up a directory for tests
 testdir = [projdir samplename filesep 'db_ringcorr_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % height and crop to use
-this_hs = 3;
+this_hs = 1;
 this_ycrop = 1024-7:1024+8;
 
-cor = 205;
-s1x = 1848.6;
-s2x = 1848.6;
-s3x = 1847.7;
+cor = 215;
+s1x = 1845.5;
+s2x = 1845.5;
+s3x = 1845.5;
 manstitchposx = [cor,s1x,s2x,s3x];
+
 projdir = ProjectionProcessingManualEntry(paramfile,this_hs,manstitchposx,...
         this_ycrop,0,'none');
 [sinoblock] = LoadCroppedSinoblock(projdir);
 
-% % testing paganin filtering
+%% 8.1. testing paganin filtering
 test_photonEnergy = photonEnergy; % [keV]
 test_det_dist_mm = det_dist_mm; % [mm]
 test_pixsize_mm = pixsize_mm; % [mm]
 test_lambda_mm = lambda_from_E(test_photonEnergy*1e3)*1e3; % [mm] (note: lambda_from_E takes [eV] and gives [m])
 
-cropSize = [14000,14000];
+cropSize = [14900,14900];
 
 dbrange = [0,50,100,200,500,1000];
 recos_crop = zeros(cropSize(2),cropSize(1),length(dbrange),'single');
@@ -639,7 +509,7 @@ end
 gsrange = [-0.01,0.05];
 figure, imshow3D(squeeze(recos_crop),gsrange)
 
-% % testing ring correction
+%% 8.2. testing ring correction
 % baseline, no correction
 thissinoblock = paganin_filter_stack(sinoblock,...
     filterwidth,pixsize_mm,lambda_mm,det_dist_mm);
@@ -651,8 +521,10 @@ reco_nrc = SingleGridrecReconstruction([testdir ...
 
 
 % this is the currently used ring correction:
+rc_smoothing = 50;
 mproj = mean(sinoblock,3);
-rproj = single(mproj-imgaussfilt(mproj,50,'Padding','symmetric'));
+rproj = single(mproj-imgaussfilt(mproj,rc_smoothing,'Padding',...
+    'symmetric'));
 rproj(abs(rproj)>0.1) = 0;
 
 thissinoblock = paganin_filter_stack(sinoblock-rproj,...
@@ -660,38 +532,24 @@ thissinoblock = paganin_filter_stack(sinoblock-rproj,...
 fullsino = squeeze(thissinoblock(round(end/2),:,:));
 fullsino = fullsino(5:end-5,:);
 reco_rc = SingleGridrecReconstruction([testdir ...
-    'reco_rc_db_' num2str(filterwidth)],fullsino,angles,pixsize_mm,...
-    pythonscript_fullpath);
+    'reco_rc_' num2str(rc_smoothing) '_db_' num2str(filterwidth)],...
+    fullsino,angles, pixsize_mm, pythonscript_fullpath);
 
-h5create([projsavedir 'angles.h5'], '/angles', size(angles), 'Datatype', 'single');
-h5write([projsavedir 'angles.h5'], '/angles', single(angles));
-
-%% Projection processing
+%% 9.   Projection processing
 % second pass:
 %   - stitching in y
 %   - (optional) ring correction -- in this case lines 92-97
 %   - (optional) filtering
 
-manstitchposy = [1835,1843,1843,1847,1847,1848,1839];
-translation = [-0.664023, -5.645471,  1.051685;...
-    0.236059, 0.497671,   -3.858646;...
-    0.528731, 0.774861,   -3.760332;...
-    -0.255347, 1.581965,   -2.778743;...
-    3.836355, 4.420312,   -5.637497;...
-    7.248668, 7.995099,   -2.645331;...
-    -5.286473, 8.250312,   -1.135933];
-projsavedir = ProjectionProcessing_pass2(paramfile,manstitchposy,...
-    translation);
+% The below script pro
+manstitchposy = 0;
+projsavedir = ProjectionProcessing_pass2(paramfile,manstitchposy);
 
-%% Decide output scaling and cropping
+%% 10.  Decide output scaling and cropping
 % would recommend loading sinograms from various positions, reconstructing
 % them and using that to determine what to use for "outputcrop" and "outputgrayscale" 
 
-%% Reconstruction
+%% 11.  Reconstruction
 
-
-%% Binning
-
-
-
+%% 12.  Binning
 

@@ -1,22 +1,10 @@
-function [writedir] = ProjectionProcessing_pass2_YCheck(...
-    paramfile,manstitchpos,hs,ycrop1,ycrop2,translation)
-arguments
-    paramfile
-    manstitchpos
-    hs
-    ycrop1
-    ycrop2
-    translation = 0
-end
-
+function [writedir] = y_stitching_check_proj(paramfile,manstitchpos,proj_nr)
 %% Stitching and generating mean
 % % Input: Dataset to process and stitch positions
 %% 0.1 Toolboxes
 addpath(genpath('./utils'))
 
 %% 0.2 Read param file
-hs_range = hs:hs+1;
-nhs = length(hs_range);
 
 % read file, make structure array
 fid = fopen(paramfile);
@@ -24,8 +12,10 @@ infoStruct = textscan(fid, '%s %s','Delimiter','\t','CommentStyle','//');
 infoStruct = cell2struct(infoStruct{2},infoStruct{1},size(infoStruct,1));
 
 % assign variables
-samplename = infoStruct.samplename;
 tmp = split(infoStruct.heightstep,'-');
+hs_range = str2double(tmp{1}):str2double(tmp{2});
+nhs = length(hs_range);
+samplename = infoStruct.samplename;
 infofile = infoStruct.infofile;
 rawbasedir = infoStruct.rawdatapath;
 projpath = infoStruct.projpath;
@@ -67,20 +57,15 @@ if not(isfolder(basedir)); mkdir(basedir); end
 writedir = [basedir 'proj_y_test' filesep];
 if not(isfolder(writedir)); mkdir(writedir); end
 %% 0.6 Overlap positions
-if any(translation, 'all')
-    manstitchpos = round(manstitchpos - translation(:,1)');
-    translation = cumsum(translation(:,2:3));
-end
 stitchposy = [0,cumsum(manstitchpos)];
 fullheight = ceil(datsize(2)+sum(manstitchpos)); 
 %% 1.0 Ring correction, filtering, stitching, saving
-t = Tiff([readdir 'proj_uf_h' num2str(hs) '_p' num2str(1,'%04d') '.tif'], 'r');
+t = Tiff([readdir 'proj_uf_h' num2str(hs_range(1)) '_p' num2str(1,'%04d') '.tif'], 'r');
 tmp = read(t); close(t);
 [sy,sx] = size(tmp);
 
 % tiff settings ()
-osy = length(ycrop1);
-tagstruct.ImageLength = osy; % y
+tagstruct.ImageLength = fullheight; % y
 tagstruct.ImageWidth = sx; % x
 tagstruct.BitsPerSample = 32; % single precission
 tagstruct.RowsPerStrip = stripheight; % strip size (faster loading of strips)
@@ -108,7 +93,7 @@ for h = 1:nhs
         tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
         blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
     elseif h == nhs
-        blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2),:,h) = ones(datsize(2)-1,sx);
+        blendmasky(floor(stitchposy(h))+2:fullheight,:,h) = ones(fullheight-floor(stitchposy(h))-1,sx);
         tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
         blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
     else
@@ -124,7 +109,8 @@ blendmasky = single(blendmasky);
 
 % start filtering, blending
 fprintf('Ring correcting, blending, and saving projections...\n'); tic;
-parfor p = 1:ip180
+parfor ip = 1:length(proj_nr)
+    p = proj_nr(ip)
     fprintf('Projection %d\n', p);
     proj = zeros(sy,sx,nhs,'single');
     for h = 1:nhs
@@ -132,17 +118,8 @@ parfor p = 1:ip180
         proj(:,:,h) = read(t); close(t);
     end
     proj = proj-rproj;
-    % translation between height steps in horizontal direction
-    if any(translation, 'all')
-        alpha = angles(p) * pi / 180.;
-        for h = 1:nhs-1
-            tx = translation(h,1);
-            ty = translation(h,2);
-            d_alpha = -ty * cos(alpha) + tx * sin(alpha);
-            proj(:,:,h+1) = subpixelshift(proj(:,:,h+1), 0, d_alpha);
-        end
-    end
-    % proj = flipud(proj);
+    % TODO: under what circumstances does this need to be commented out?
+    proj = flipud(proj);
     
     ebump = 10;
     for h = fliplr(1:nhs-1)
@@ -162,17 +139,13 @@ parfor p = 1:ip180
         fullproj(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2),:,h) = proj(:,:,h);
     end
     fullproj = sum(fullproj.*blendmasky,3); 
-    % fullproj = flipud(fullproj);
+    fullproj = flipud(fullproj);
     
     
     fullproj = single(fullproj);
     fullproj = filtfunc(fullproj);
-    fullproj1 = fullproj(ycrop1,:);
-    fullproj2 = fullproj(ycrop2,:);
-    t = Tiff([writedir 'proj1_f_' num2str(p,'%04d') '.tif'], 'w');
-    t.setTag(tagstruct); t.write(fullproj1); t.close();
-    t = Tiff([writedir 'proj2_f_' num2str(p,'%04d') '.tif'], 'w');
-    t.setTag(tagstruct); t.write(fullproj2); t.close();
+    t = Tiff([writedir 'proj_full_f_' num2str(p,'%04d') '.tif'], 'w');
+    t.setTag(tagstruct); t.write(fullproj); t.close();
 end
 toc
 end

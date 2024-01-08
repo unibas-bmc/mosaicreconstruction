@@ -1,4 +1,4 @@
-%% Mosaic reconstruction for "mouse6_perf_eth"
+%% Mosaic reconstruction for "mouse9_perf_eth"
 
 %% Toolboxes
 addpath(genpath('./utils'))
@@ -13,7 +13,7 @@ prepimage = @(im,vr) uint8(255*(double(im)-vr(1))/(vr(2)-vr(1)));
 prepimagei16 = @(im,vr) uint16((2^16-1)*(double(im)-vr(1))/(vr(2)-vr(1)));
 
 %% Param file
-paramfile = './example/param_files/mouse6_perf_eth_full.txt';
+paramfile = './example/param_files/tissue58.txt';
 
 %% Read a few useful variables from the param file
 fid = fopen(paramfile);
@@ -52,7 +52,7 @@ pixsize_mm = ReadPixelSize_ParamFile(paramfile);
 [angles,ip180] = ReadAngles_ParamFile(paramfile,h5AnglePath);
 
 %% Path to python scripts
-pythonscript_fullpath = '/media/bmc/_home3/handover/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
+pythonscript_fullpath = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
 
 %% Build a roughly stitched mosaic projection
 projNo = 1;
@@ -66,7 +66,7 @@ gausskernel = 3;
 %% Check selected overlap positions manually
 % % load automatically found positions
 stitchparamdir = [projdir samplename filesep 'parameters' filesep];
-olpix = zeros(nrings-1,nhs);
+olpix = zeros(nrings -1,nhs);
 corpix = zeros(1,nhs);
 for h = 1:nhs
     t = readtable([stitchparamdir 'stitching_parameters_h' num2str(h) '.csv']);
@@ -85,22 +85,22 @@ text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num
 xlabel('height step'), ylabel('estimated COR position')
 
 %  manually select values to be used for all height steps
-% cor = 205;
-% s1x = 1848.3;
-% s2x = 1848.3;
-% s3x = 1848.3;
-% manstitchpos = [cor,s1x,s2x,s3x];
+cor = 287;
+s1x = 1759.4;
+s2x = 1759.4;
+s3x = 1759.4;
+manstitchpos = [cor,s1x,s2x,s3x];
 autostitchpos = [corpix', olpix'];
-manstitchpos = [
-        207.6    1848.3    1844.6    1848.3;  % 1
-        205.9    1848.3    1848.3    1848.3;  % 2
-        205.3    1848.6    1848.6    1847.7;  % 3
-        205.4    1848.1    1848.6    1847.8;  % 4
-        205.0    1848.3    1848.3    1848.3;  % 5
-        205.0    1848.5    1846.0    1847.6;  % 6
-        203.6    1848.3    1848.3    1848.3;  % 7
-        204.6    1848.3    1848.3    1848.3;  % 8
-    ];
+% manstitchpos = [
+%         207.6    1848.3    1844.6    1848.3;  % 1
+%         205.9    1848.3    1848.3    1848.3;  % 2
+%         205.3    1848.6    1848.6    1847.7;  % 3
+%         205.4    1848.1    1848.6    1847.8;  % 4
+%         205.0    1848.3    1848.3    1848.3;  % 5
+%         205.0    1848.5    1846.0    1847.6;  % 6
+%         203.6    1848.3    1848.3    1848.3;  % 7
+%         204.6    1848.3    1848.3    1848.3;  % 8
+%     ];
 
 % loop over heights, process projections for ycrop, reconstruct
 ycrop = 1017:1032;
@@ -109,14 +109,21 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % note: we do a ring correction here
-roi = [14900,14900];
+roi = [14358,14358];
 recos = zeros(roi(2),roi(1),nhs,'single');
 for h = 1:nhs
     % build projections using above stitch positions for given height step
-    projdir = ProjectionProcessingManualEntry(paramfile,h,...
-        manstitchpos(h,:),...
-        ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
-        'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
+    if size(manstitchpos, 1) == 1
+        projdir = ProjectionProcessingManualEntry(paramfile,h,...
+            manstitchpos,...
+            ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
+            'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
+    else
+        projdir = ProjectionProcessingManualEntry(paramfile,h,...
+            manstitchpos(h,:),...
+            ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
+            'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
+    end
     [sinoblock] = LoadCroppedSinoblock(projdir);
     % ring correction:
     mproj = mean(sinoblock,3);
@@ -412,16 +419,11 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-manstitchposx = [
-        207.6    1848.3    1844.6    1848.3;  % 1
-        205.9    1848.3    1848.3    1848.3;  % 2
-        205.3    1848.6    1848.6    1847.7;  % 3
-        205.4    1848.1    1848.6    1847.8;  % 4
-        205.0    1848.3    1848.3    1848.3;  % 5
-        205.0    1848.5    1846.0    1847.6;  % 6
-        203.6    1848.3    1848.3    1848.3;  % 7
-        204.6    1848.3    1848.3    1848.3;  % 8
-    ];
+cor = 287;
+s1x = 1759.4;
+s2x = 1759.4;
+s3x = 1759.4;
+manstitchposx = [cor,s1x,s2x,s3x];
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
 %% Automatically find height step stitching positions (all height steps)

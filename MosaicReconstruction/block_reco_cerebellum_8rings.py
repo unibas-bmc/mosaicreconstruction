@@ -13,14 +13,13 @@ import sys
 import libtiff as tif
 
 ###### settings, should all come from parameter file
-doBlock = 1          # 1: to block of 32 slices at once, else slice-wise reconstruction
-method='gridrec'     # 'fbp' takes very long
-iterK = 2;           # number of iterations for iterative methods
-verboseExtra = 0;    # 1: more information
-ncore = None         # ncore = None to get the default (i.e. 1 core)
+doBlock = False         # True: to block of 32 slices at once,
+                        # else slice-wise reconstruction
+method='gridrec'        # 'fbp' takes very long
+iterK = 2;              # number of iterations for iterative methods
+verboseExtra = True;    # True: more information
 
 ###### Input: Dataset to process
-#paramfile = '/media/griffin/_home1/mosaic_reconstruction/mousebrain/param_files/mouse4_perf_eth_full.txt'
 paramfile = sys.argv[1]
 print('Using ' + paramfile)
 
@@ -54,8 +53,6 @@ for i in range(len(outputgrayscale)):
 projdir = projbasedir + samplename + os.sep + 'proj' + os.sep;
 recodir = recobasedir + samplename + os.sep + 'reco' + os.sep;
 
-os.makedirs(recodir, mode=0o755, exist_ok=True)
-
 print('Writing results to ' + recodir)    
 
 ###### 0.5 Load measurement info
@@ -64,7 +61,7 @@ angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 ip180 = angles.shape[0]
 
 T = pandas.read_excel(infofile)
-pixsize_um = 0.65;
+pixsize_um = T.pixsize_um[0];
 pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
 
@@ -82,9 +79,7 @@ sample_format = t.GetField('SampleFormat')
 typ = t.get_numpy_type(bits, sample_format)
                 
 ###### 1.1 loop over y, load singogram, run reco, output reconstruction
-# TODO: reset
-# for b in range(nblocks):
-for b in range(96, nblocks):
+for b in range(nblocks):
     print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
     t1 = time.time()
     tyi = b*blocksize+1;   # this y initial
@@ -121,15 +116,21 @@ for b in range(96, nblocks):
         this_sino_log = tomopy.minus_log(projblock)
         this_sino_log = np.transpose(this_sino_log,(2,1,0))
         if method=='fbp' or method=='gridrec':
-            reco = tomopy.recon(this_sino_log, angles, sinogram_order='False',algorithm=method,ncore=ncore)/pixsize_mm
+            reco = tomopy.recon(this_sino_log, angles,
+                sinogram_order=True, algorithm=method)/pixsize_mm
         else:
-            reco = tomopy.recon(this_sino_log, angles, sinogram_order='False',algorithm=method,num_iter=iterK,ncore=ncore)/pixsize_mm
+            reco = tomopy.recon(this_sino_log, angles,
+                sinogram_order=True, algorithm=method,
+                num_iter=iterK)/pixsize_mm
 
         # crop
-        reco = reco[:,outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
+        reco = reco[:,outputcrop[2]:sz[0]-outputcrop[3],
+            outputcrop[0]:sz[0]-outputcrop[1]];
         # convert to uint16
-        # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
-        reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
+        # reco = np.uint16(2**16*((reco-outputgrayscale[0])
+        #     /(outputgrayscale[1]-outputgrayscale[0])));
+        reco = np.int16((2**16*((reco-outputgrayscale[0])
+            /(outputgrayscale[1]-outputgrayscale[0])))-2**15);
         
         for iy in range(len(tyr)):
             outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
@@ -143,16 +144,23 @@ for b in range(96, nblocks):
             this_sino_log = np.expand_dims(this_sino_log,axis=0)
     
             if method=='fbp' or method=='gridrec':
-                reco = tomopy.recon(this_sino_log, angles, sinogram_order='False',algorithm=method)/pixsize_mm
+                reco = tomopy.recon(this_sino_log, angles,
+                    sinogram_order=True,
+                    algorithm=method)/pixsize_mm
             else:
-                reco = tomopy.recon(this_sino_log, angles, sinogram_order='False',algorithm=method,num_iter=iterK)/pixsize_mm
+                reco = tomopy.recon(this_sino_log, angles,
+                    sinogram_order=True, algorithm=method,
+                    num_iter=iterK)/pixsize_mm
             
             reco = np.squeeze(reco)
             # crop
-            reco = reco[outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
+            reco = reco[outputcrop[2]:sz[0]-outputcrop[3],
+                outputcrop[0]:sz[0]-outputcrop[1]];
             # convert to int16
-            # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
-            reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
+            # reco = np.uint16(2**16*((reco-outputgrayscale[0])
+            #     /(outputgrayscale[1]-outputgrayscale[0])));
+            reco = np.int16((2**16*((reco-outputgrayscale[0])
+                /(outputgrayscale[1]-outputgrayscale[0])))-2**15);
 
             outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
             fid = tif.TIFF.open(outfname, 'w')

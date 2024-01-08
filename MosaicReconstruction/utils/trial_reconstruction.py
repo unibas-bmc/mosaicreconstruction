@@ -13,6 +13,9 @@ import sys
 import libtiff as tif
 
 ###### settings, should all come from parameter file
+
+trial_slice = int(sys.argv[2])
+
 doBlock = 1          # 1: to block of 32 slices at once, else slice-wise reconstruction
 method='gridrec'     # 'fbp' takes very long
 iterK = 2;           # number of iterations for iterative methods
@@ -80,19 +83,15 @@ height = t.GetField("ImageLength")
 bits = t.GetField('BitsPerSample')
 sample_format = t.GetField('SampleFormat')
 typ = t.get_numpy_type(bits, sample_format)
-                
+
 ###### 1.1 loop over y, load singogram, run reco, output reconstruction
-# TODO: reset
-# for b in range(nblocks):
-for b in range(96, nblocks):
-    print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
+if True:
+    print('Reconstructing slice ' + str(trial_slice))
+    b = int((trial_slice - 1) / blocksize)
     t1 = time.time()
-    tyi = b*blocksize+1;   # this y initial
-    tyf = (b+1)*blocksize; # this y final
-    tyr = range(tyi,tyf+1);  # this y range
     
-    # load projection block 
-    projblock = np.empty((blocksize, sx, ip180), typ)
+    # load sinogram
+    projblock = np.empty((1, sx, ip180), typ)
     print('Loading projections...')
     t2 = time.time()
     for p in range(ip180):
@@ -105,7 +104,7 @@ for b in range(96, nblocks):
         ReadStrip = t.ReadEncodedStrip
         elem = ReadStrip(b, tmp.ctypes.data, size)
         #tmp[np.isnan(tmp)] = 1;
-        projblock[:,:,p] = tmp;
+        projblock[:,:,p] = tmp[trial_slice - 1 - b * blocksize,:];
     
     executionTime = (time.time() - t2)
     print('read projections: %.2f sec ' % (executionTime))
@@ -131,11 +130,10 @@ for b in range(96, nblocks):
         # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
         reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
         
-        for iy in range(len(tyr)):
-            outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
-            fid = tif.TIFF.open(outfname, 'w')
-            fid.write_image(np.squeeze(reco[iy,:,:]))
-            fid.close()
+        outfname = '%s/reco_%05d.tif' % ((recodir,trial_slice))
+        fid = tif.TIFF.open(outfname, 'w')
+        fid.write_image(np.squeeze(reco[0,:,:]))
+        fid.close()
     else:
         for iy in range(len(tyr)):
             this_sino_log = tomopy.minus_log(projblock[:,:,iy])
