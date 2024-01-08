@@ -419,16 +419,11 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-manstitchposx = [
-        207.6    1848.3    1844.6    1848.3;  % 1
-        205.9    1848.3    1848.3    1848.3;  % 2
-        205.3    1848.6    1848.6    1847.7;  % 3
-        205.4    1848.1    1848.6    1847.8;  % 4
-        205.0    1848.3    1848.3    1848.3;  % 5
-        205.0    1848.5    1846.0    1847.6;  % 6
-        203.6    1848.3    1848.3    1848.3;  % 7
-        204.6    1848.3    1848.3    1848.3;  % 8
-    ];
+cor = 287;
+s1x = 1759.4;
+s2x = 1759.4;
+s3x = 1759.4;
+manstitchposx = [cor,s1x,s2x,s3x];
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
 %% Automatically find height step stitching positions (all height steps)
