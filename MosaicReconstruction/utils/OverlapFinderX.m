@@ -236,6 +236,7 @@ for i = 1:nrings-1
         ccval(il) = corr2(imr1c,timr2c);
     end
     this_ol = scanRange(ccval==max(ccval));
+    this_ol = this_ol(1);
     scanRanges(:,p,i) = scanRange;
     ccvals(:,p,i) = ccval;
     ols(p,i) = this_ol;
