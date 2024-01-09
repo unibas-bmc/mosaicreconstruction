@@ -21,6 +21,7 @@ projpath = infoStruct.projpath;
 stripheight = str2double(infoStruct.stripheight);
 h5ImagePath = infoStruct.h5ImagePath;
 h5AnglePath = infoStruct.h5AnglePath;
+imagefmt = infoStruct.imagefmt;
 
 if isfield(infoStruct,'ycrop')
 ycrop = cell2mat(textscan(infoStruct.ycrop,'%f%f','Delimiter',','));
@@ -289,25 +290,37 @@ parfor p = 1:ip180
     % add to mean projection
     mproj = mproj + (fullproj/ip180);
     
-    % write to HDF5 file
+    % write to file
     fullproj = single(fullproj);
-    fullproj_filename = [writedir 'proj_uf_h' num2str(th) '_p' ...
-        num2str(p,'%04d') '.h5'];
-    h5create(fullproj_filename, '/proj', size(fullproj), ...
-        Datatype='single');
-    h5write(fullproj_filename, '/proj', fullproj);
+    if imagefmt == "tiff"
+        t = Tiff([writedir 'proj_uf_h' num2str(th) '_p' num2str(p,'%04d') '.tif'], 'w');
+        t.setTag(tagstruct); t.write(fullproj); t.close();
+    else
+        fullproj_filename = [writedir 'proj_uf_h' num2str(th) '_p' ...
+            num2str(p,'%04d') '.h5'];
+        h5create(fullproj_filename, '/proj', size(fullproj), ...
+            Datatype='single');
+        h5write(fullproj_filename, '/proj', fullproj);
+    end
 end
 toc
 mproj_m150 = medfilt2(mproj,[150,150]);
 rproj = -(mproj-mproj_m150);
 rproj = single(rproj); % ring profile
 mproj = single(mproj); % mean projection
-rproj_filename = [writedir 'rproj_h' num2str(th) '.h5'];
-h5create(rproj_filename, '/proj', size(rproj), Datatype='single');
-h5write(rproj_filename, '/proj', rproj);
-mproj_filename = [writedir 'mproj_h' num2str(th) '.h5'];
-h5create(mproj_filename, '/proj', size(mproj), Datatype='single');
-h5write(mproj_filename, '/proj', mproj);
+if imagefmt == "tiff"
+    t = Tiff([writedir 'rproj_h' num2str(th) '.tif'], 'w');
+    t.setTag(tagstruct); t.write(rproj); t.close();
+    t = Tiff([writedir 'mproj_h' num2str(th) '.tif'], 'w');
+    t.setTag(tagstruct); t.write(mproj); t.close();
+else
+    rproj_filename = [writedir 'rproj_h' num2str(th) '.h5'];
+    h5create(rproj_filename, '/proj', size(rproj), Datatype='single');
+    h5write(rproj_filename, '/proj', rproj);
+    mproj_filename = [writedir 'mproj_h' num2str(th) '.h5'];
+    h5create(mproj_filename, '/proj', size(mproj), Datatype='single');
+    h5write(mproj_filename, '/proj', mproj);
+end
 end
 %%
 end

@@ -25,6 +25,7 @@ projpath2 = infoStruct.projpath2;
 stripheight = str2double(infoStruct.stripheight);
 h5ImagePath = infoStruct.h5ImagePath;
 h5AnglePath = infoStruct.h5AnglePath;
+imagefmt = infoStruct.imagefmt;
 
 if isfield(infoStruct,'ycrop')
 ycrop = cell2mat(textscan(infoStruct.ycrop,'%f%f','Delimiter',','));
@@ -83,10 +84,26 @@ end
 stitchposy = [0,cumsum(manstitchpos)];
 fullheight = ceil(datsize(2)+sum(manstitchpos));
 %% 1.0 Ring correction, filtering, stitching, saving
-tmp = h5read([readdir 'proj_uf_h' num2str(1) '_p' num2str(1,'%04d') ...
-    '.h5'], '/proj'); % TODO: optimize e.g. by using h5info
+if imagefmt == "tiff"
+    t = Tiff([readdir 'proj_uf_h' num2str(1) '_p' num2str(1,'%04d') '.tif'], 'r');
+    tmp = read(t); close(t);
+else
+    tmp = h5read([readdir 'proj_uf_h' num2str(1) '_p' num2str(1,'%04d') ...
+        '.h5'], '/proj'); % TODO: optimize e.g. by using h5info
+end
 [sy,sx] = size(tmp);
 clear tmp
+
+% tiff settings ()
+tagstruct.ImageLength = fullheight; % y
+tagstruct.ImageWidth = sx; % x
+tagstruct.BitsPerSample = 32; % single precission
+tagstruct.RowsPerStrip = stripheight; % strip size (faster loading of strips)
+tagstruct.SamplesPerPixel = 1;
+tagstruct.Compression = Tiff.Compression.None;
+tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
+tagstruct.Photometric = Tiff.Photometric.LinearRaw;
+tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
 
 % write angles
 h5create([writedir 'angles.h5'], '/angles', size(angles))
@@ -102,7 +119,12 @@ end
 rproj = zeros(sy,sx,nhs,'single');
 for h = 1:nhs
     th = hs_range(h);
-    im = h5read([readdir 'mproj_h' num2str(th) '.h5'], '/proj');
+    if imagefmt == "tiff"
+        t = Tiff([readdir 'mproj_h' num2str(th) '.tif'], 'r');
+        im = read(t); close(t);
+    else
+        im = h5read([readdir 'mproj_h' num2str(th) '.h5'], '/proj');
+    end
     rproj(:,:,h) = single(im-imgaussfilt(im,50,'Padding','symmetric'));
 end
 rproj(abs(rproj)>0.1) = 0;
@@ -138,8 +160,13 @@ fprintf('Ring correcting, blending, and saving projections...\n'); tic;
 parfor p = 1:ip180
     proj = zeros(sy,sx,nhs,'single');
     for h = 1:nhs
-        proj(:,:,h) = h5read([readdir 'proj_uf_h' num2str(hs_range(h)) ...
-            '_p' num2str(p,'%04d') '.h5'], '/proj')
+        if imagefmt == "tiff"
+            t = Tiff([readdir 'proj_uf_h' num2str(hs_range(h)) '_p' num2str(p,'%04d') '.tif'], 'r');
+            proj(:,:,h) = read(t); close(t);
+        else
+            proj(:,:,h) = h5read([readdir 'proj_uf_h' num2str(hs_range(h)) ...
+                '_p' num2str(p,'%04d') '.h5'], '/proj');
+        end
     end
     proj = proj-rproj;
     % translation between height steps in horizontal direction
@@ -180,10 +207,15 @@ parfor p = 1:ip180
         
     fullproj = filtfunc(fullproj);
     fullproj = single(fullproj);
-    h5create([writedir 'proj_f_' num2str(p,'%04d') '.h5'], '/proj',...
-        size(fullproj), Datatype='single');
-    h5write([writedir 'proj_f_' num2str(p,'%04d') '.h5'], '/proj',...
-        fullproj)
+    if imagefmt == "tiff"
+        t = Tiff([writedir 'proj_f_' num2str(p,'%04d') '.tif'], 'w');
+        t.setTag(tagstruct); t.write(fullproj); t.close();
+    else
+        h5create([writedir 'proj_f_' num2str(p,'%04d') '.h5'], '/proj',...
+            size(fullproj), Datatype='single');
+        h5write([writedir 'proj_f_' num2str(p,'%04d') '.h5'], '/proj',...
+            fullproj)
+    end
 end
 toc
 end
