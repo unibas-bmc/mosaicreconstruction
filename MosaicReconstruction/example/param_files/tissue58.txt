@@ -56,3 +56,7 @@ outputgrayscale	-0.01,0.1
 
 // 1 or 0
 verboseMode	1
+
+// image format to use for projections and reconstructed slices
+// "tiff" or "hdf5"
+imagefmt	tiff
