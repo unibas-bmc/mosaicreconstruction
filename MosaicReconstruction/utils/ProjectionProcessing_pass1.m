@@ -91,10 +91,18 @@ fullwidth_l = halfwidth_l*2-ceil(corpix_subpix_l);
 fullwidth_min = min(fullwidth_l);
 %% 1.0 Loop over heights
 for h = 1:nhs
-corpix_subpix = corpix_subpix_l(h,:);
-ol_final_subpix = ol_final_subpix_l(h,:);
-halfwidth = halfwidth_l(h,:);
-fullwidth = fullwidth_l(h,:);
+if size(corpix_subpix_l, 1) == 1
+    corpix_subpix = corpix_subpix_l;
+    ol_final_subpix = ol_final_subpix_l;
+    halfwidth = halfwidth_l;
+    fullwidth = fullwidth_l;
+else
+    corpix_subpix = corpix_subpix_l(h,:);
+    ol_final_subpix = ol_final_subpix_l(h,:);
+    halfwidth = halfwidth_l(h,:);
+    fullwidth = fullwidth_l(h,:);
+end
+
 stitchpos = [0,cumsum(ol_final_subpix)];
 % worst case we crop asymetrically by 1 pixel
 crop_left = ceil((fullwidth - fullwidth_min) / 2);
