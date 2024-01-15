@@ -139,7 +139,7 @@ parfor ip = 1:length(proj_nr)
         fullproj(floor(stitchposy(h))+1:floor(stitchposy(h))+datsize(2),:,h) = proj(:,:,h);
     end
     fullproj = sum(fullproj.*blendmasky,3); 
-    fullproj = flipud(fullproj);
+%     fullproj = flipud(fullproj);
     
     
     fullproj = single(fullproj);
