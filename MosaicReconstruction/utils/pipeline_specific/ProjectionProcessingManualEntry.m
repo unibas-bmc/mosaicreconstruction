@@ -133,7 +133,7 @@ tagstruct.RowsPerStrip = stripheight; % strip size (faster loading of strips)
 tagstruct.SamplesPerPixel = 1;
 tagstruct.Compression = Tiff.Compression.None;
 tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
-tagstruct.Photometric = Tiff.Photometric.LinearRaw;
+tagstruct.Photometric = Tiff.Photometric.MinIsBlack;
 tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
 
 % build a mask for the 0 degrees projection
