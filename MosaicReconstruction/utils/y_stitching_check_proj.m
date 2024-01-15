@@ -119,7 +119,7 @@ parfor ip = 1:length(proj_nr)
     end
     proj = proj-rproj;
     % TODO: under what circumstances does this need to be commented out?
-    proj = flipud(proj);
+    % proj = flipud(proj);
     
     ebump = 10;
     for h = fliplr(1:nhs-1)
