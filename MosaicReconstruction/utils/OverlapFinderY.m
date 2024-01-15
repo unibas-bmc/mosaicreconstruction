@@ -95,8 +95,8 @@ hold on
 for p = 1:length(prange)
     imr1 = filtfunc(imread([readdir 'proj_uf_h' num2str(h) '_p' num2str(p,'%04d') '.tif']));
     imr2 = filtfunc(imread([readdir 'proj_uf_h' num2str(h+1) '_p' num2str(p,'%04d') '.tif']));
-    imr1 = flipud(imr1);
-    imr2 = flipud(imr2);
+%     imr1 = flipud(imr1);
+%     imr2 = flipud(imr2);
     
     ccwin1 = datsize(2)-windowwidth+1:datsize(2);
     imr1c = imr1(ccwin1,:);
