@@ -140,7 +140,7 @@ else
             tmp = floor(stitchposy(h+1))+1:floor(stitchposy(h))+datsize(2)-1;
             blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(1,0,length(tmp))';
         elseif h == nhs
-            blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2),:,h) = ones(datsize(2)-1,sx);
+            blendmasky(floor(stitchposy(h))+2:floor(stitchposy(h))+datsize(2)+1,:,h) = ones(datsize(2),sx);
             tmp = floor(stitchposy(h))+1:floor(stitchposy(h-1))+datsize(2)-1;
             blendmasky(tmp,:,h) = ones(length(tmp),sx).*linspace(0,1,length(tmp))';
         else
