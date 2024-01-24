@@ -61,7 +61,7 @@ if not(isfolder(writedir)); mkdir(writedir); end
 stitchposy = [0,cumsum(manstitchpos)];
 fullheight = ceil(datsize(2)+sum(manstitchpos));
 
-ycrop2 = ycrop1 - stitchposy(2);
+ycrop2 = ycrop1 - round(stitchposy(2));
 [strips1, ycrop1_strip] = findTiffStrips(ycrop1, stripheight);
 [strips2, ycrop2_strip] = findTiffStrips(ycrop2, stripheight);
 %% 1.0 Ring correction, filtering, stitching, saving
