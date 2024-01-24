@@ -440,8 +440,8 @@ projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
 %% Check height step stitching positions in some projections
 
-manstitchposy = [1835,1843,1843,1847,1847,1848,1839];
-proj_nr = 1:500:4001;
+manstitchposy = [1838.25,1838.75,1835.75,1834.8,1832.75,1834.75];
+proj_nr = 1; % 1:500:4001;
 
 projsavedir = y_stitching_check_proj(paramfile,manstitchposy,proj_nr);
 
@@ -454,14 +454,15 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % Which overlap?
-hs = 7; % 1 is 1-2, 2 is 2-3, etc.§
+hs = 1; % 1 is 1-2, 2 is 2-3, etc.§
 
 % stitch position for this overlap
-manstitchposy = 1839;
-ycrop1 = 1941:1956; % region in overlap, i.e. larger than manstitchposy (length 16)
-xcrop = 6000; % number of pixels to crop projections from both sides
+manstitchposy = 1838.25;
+ycrop1 = 1901:1916; % region in overlap, i.e. larger than manstitchposy (length 16)
+ycrop2 = 1801:1816; % region below overlap, i.e. smaller than manstitchposy (length 16)
+xcrop = 140; % number of pixels to crop projections from both sides
 % projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,ycrop2);
-projsavedir = ProjectionProcessing_pass2_YCheck(paramfile,manstitchposy,hs,ycrop1,xcrop);
+projsavedir = ProjectionProcessing_pass2_YCheck_v2(paramfile,manstitchposy,hs,ycrop1,xcrop);
 
 tmp1 = dir([projsavedir 'proj1_*.tif']);
 tmp2 = dir([projsavedir 'proj2_*.tif']);
@@ -476,38 +477,52 @@ for i = 1:length(tmp2)
     vol2(:,:,i) = imread([tmp2(i).folder filesep tmp2(i).name]);
 end
 
-reco1 = zeros(sy, sx, sx, 'single');
-reco2 = zeros(sy, sx, sx, 'single');
-
-parfor y = 1:sy
-    reco1(y,:,:) = SingleGridrecReconstruction(...
+y = 8;
+SingleGridrecReconstruction(...
         [testdir 'overlap1_slice' num2str(y)],...
         squeeze(vol1(y,:,:)),...
         angles,...
         pixsize_mm,...
         pythonscript_fullpath);
-    reco2(y,:,:) = SingleGridrecReconstruction(...
+SingleGridrecReconstruction(...
         [testdir 'overlap2_slice' num2str(y)],...
         squeeze(vol2(y,:,:)),...
         angles,...
         pixsize_mm,...
         pythonscript_fullpath);
-end
 
-fprintf(['writing volume 1 to ' testdir 'overlap1_reco.mhd\n'])
-mha_write(permute(reco1, [3 2 1]), [testdir 'overlap1_reco'])
+% reco1 = zeros(sy, sx, sx, 'single');
+% reco2 = zeros(sy, sx, sx, 'single');
+% 
+% parfor y = 1:sy
+%     reco1(y,:,:) = SingleGridrecReconstruction(...
+%         [testdir 'overlap1_slice' num2str(y)],...
+%         squeeze(vol1(y,:,:)),...
+%         angles,...
+%         pixsize_mm,...
+%         pythonscript_fullpath);
+%     reco2(y,:,:) = SingleGridrecReconstruction(...
+%         [testdir 'overlap2_slice' num2str(y)],...
+%         squeeze(vol2(y,:,:)),...
+%         angles,...
+%         pixsize_mm,...
+%         pythonscript_fullpath);
+% end
 
-fprintf(['writing volume 2 to ' testdir 'overlap2_reco.mhd\n'])
-mha_write(permute(reco2, [3 2 1]), [testdir 'overlap2_reco'])
-
-fprintf('deleting temporaries\n')
-for h = 1:2
-    for y = 1:sy
-        delete([testdir 'overlap' num2str(h) '_slice' num2str(y) '.h5']);
-        delete([testdir 'overlap' num2str(h) '_slice' num2str(y) ...
-            '_reco.h5']);
-    end
-end
+% fprintf(['writing volume 1 to ' testdir 'overlap1_reco.mhd\n'])
+% mha_write(permute(reco1, [3 2 1]), [testdir 'overlap1_reco'])
+% 
+% fprintf(['writing volume 2 to ' testdir 'overlap2_reco.mhd\n'])
+% mha_write(permute(reco2, [3 2 1]), [testdir 'overlap2_reco'])
+% 
+% fprintf('deleting temporaries\n')
+% for h = 1:2
+%     for y = 1:sy
+%         delete([testdir 'overlap' num2str(h) '_slice' num2str(y) '.h5']);
+%         delete([testdir 'overlap' num2str(h) '_slice' num2str(y) ...
+%             '_reco.h5']);
+%     end
+% end
 
 %% Check translation of rotation center
 % We observed a displacement in the two subsequent height steps.
@@ -674,16 +689,8 @@ h5write([projsavedir 'angles.h5'], '/angles', single(angles));
 %   - (optional) ring correction -- in this case lines 92-97
 %   - (optional) filtering
 
-manstitchposy = [1835,1843,1843,1847,1847,1848,1839];
-translation = [-0.664023, -5.645471,  1.051685;...
-    0.236059, 0.497671,   -3.858646;...
-    0.528731, 0.774861,   -3.760332;...
-    -0.255347, 1.581965,   -2.778743;...
-    3.836355, 4.420312,   -5.637497;...
-    7.248668, 7.995099,   -2.645331;...
-    -5.286473, 8.250312,   -1.135933];
-projsavedir = ProjectionProcessing_pass2(paramfile,manstitchposy,...
-    translation);
+manstitchposy = [1838.25,1838.75,1835.75,1834.8,1832.75,1834.75];
+projsavedir = ProjectionProcessing_pass2(paramfile,manstitchposy);
 
 %% Decide output scaling and cropping
 % would recommend loading sinograms from various positions, reconstructing
