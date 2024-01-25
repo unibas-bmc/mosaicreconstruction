@@ -2,7 +2,6 @@
 
 #import code       # for debugging, breakpoint with code.interact(local=locals())
 import tomopy
-import pylab
 import time
 import h5py
 import numpy as np
@@ -13,10 +12,9 @@ import sys
 import libtiff as tif
 
 ###### settings, should all come from parameter file
-doBlock = 1          # 1: to block of 32 slices at once, else slice-wise reconstruction
+doBlock = True       # True: do block of 32 slices at once, False: slice-wise reconstruction
 method='gridrec'     # 'fbp' takes very long
 iterK = 2;           # number of iterations for iterative methods
-verboseExtra = 0;    # 1: more information
 ncore = None         # ncore = None to get the default (i.e. 1 core)
 
 ###### Input: Dataset to process
@@ -35,7 +33,6 @@ with open(paramfile,'r') as f:
             name, valueAndMore = line.split("\t") # split it by tabs
             value, others = valueAndMore.split("\n")  # remove endline 
             infoStruct[name]=value 
-
 f.close()
 # assign variables
 samplename = infoStruct['samplename']
@@ -51,8 +48,8 @@ for i in range(len(outputgrayscale)):
     outputgrayscale[i] = float(outputgrayscale[i])
 
 ###### 0.4 Set up directories
-projdir = projbasedir + samplename + os.sep + 'proj' + os.sep;
-recodir = recobasedir + samplename + os.sep + 'reco' + os.sep;
+projdir = os.path.join(projbasedir, samplename, 'proj')
+recodir = os.path.join(recobasedir, samplename, 'reco')
 
 os.makedirs(recodir, mode=0o755, exist_ok=True)
 
@@ -61,6 +58,7 @@ print('Writing results to ' + recodir)
 ###### 0.5 Load measurement info
 f = h5py.File(projdir + 'angles.h5','r')
 angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
+f.close()
 ip180 = angles.shape[0]
 
 T = pandas.read_excel(infofile)
@@ -82,9 +80,7 @@ sample_format = t.GetField('SampleFormat')
 typ = t.get_numpy_type(bits, sample_format)
                 
 ###### 1.1 loop over y, load singogram, run reco, output reconstruction
-# TODO: reset
-# for b in range(nblocks):
-for b in range(96, nblocks):
+for b in range(nblocks):
     print('Reconstructing block ' + str(b+1) + '/' + str(nblocks) + '...')
     t1 = time.time()
     tyi = b*blocksize+1;   # this y initial
@@ -121,9 +117,9 @@ for b in range(96, nblocks):
         this_sino_log = tomopy.minus_log(projblock)
         this_sino_log = np.transpose(this_sino_log,(2,1,0))
         if method=='fbp' or method=='gridrec':
-            reco = tomopy.recon(this_sino_log, angles, sinogram_order='False',algorithm=method,ncore=ncore)/pixsize_mm
+            reco = tomopy.recon(this_sino_log, angles, sinogram_order=True,algorithm=method,ncore=ncore)/pixsize_mm
         else:
-            reco = tomopy.recon(this_sino_log, angles, sinogram_order='False',algorithm=method,num_iter=iterK,ncore=ncore)/pixsize_mm
+            reco = tomopy.recon(this_sino_log, angles, sinogram_order=True,algorithm=method,num_iter=iterK,ncore=ncore)/pixsize_mm
 
         # crop
         reco = reco[:,outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
