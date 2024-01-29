@@ -23,7 +23,7 @@ projpath	/media/bmc/griffin_disk11/anatomix_mousebrain/
 // path for final projections (flat/dark corrected, stitched, filtered, ring corrected)
 projpath2	/media/bmc/griffin_disk11/anatomix_mousebrain/
 // reco will go in a sub-directory samplename/reco/
-recopath	/media/bmc/tissue58
+recopath	/media/bmc/tissue58/anatomix_mousebrain/
 
 // Filtering
 // options are "paganin", "gauss", or "none"
