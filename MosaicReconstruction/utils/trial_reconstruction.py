@@ -128,7 +128,7 @@ if True:
         reco = reco[:,outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
         # convert to uint16
         # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
-        reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
+        reco = np.int16(((2**16 - 1)*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
         
         outfname = '%s/reco_%05d.tif' % ((recodir,trial_slice))
         fid = tif.TIFF.open(outfname, 'w')
@@ -150,7 +150,7 @@ if True:
             reco = reco[outputcrop[2]:sz[0]-outputcrop[3],outputcrop[0]:sz[0]-outputcrop[1]];
             # convert to int16
             # reco = np.uint16(2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])));
-            reco = np.int16((2**16*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
+            reco = np.int16(((2**16 - 1)*((reco-outputgrayscale[0])/(outputgrayscale[1]-outputgrayscale[0])))-2**15);
 
             outfname = '%s/reco_%05d.tif' % ((recodir,tyr[iy]))
             fid = tif.TIFF.open(outfname, 'w')
