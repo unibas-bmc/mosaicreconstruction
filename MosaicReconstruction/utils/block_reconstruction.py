@@ -56,7 +56,7 @@ os.makedirs(recodir, mode=0o755, exist_ok=True)
 print('Writing results to ' + recodir)    
 
 ###### 0.5 Load measurement info
-f = h5py.File(projdir + 'angles.h5','r')
+f = h5py.File(projdir + '/angles.h5','r')
 angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 f.close()
 ip180 = angles.shape[0]
