@@ -56,7 +56,7 @@ os.makedirs(recodir, mode=0o755, exist_ok=True)
 print('Writing results to ' + recodir)    
 
 ###### 0.5 Load measurement info
-f = h5py.File(projdir + '/angles.h5','r')
+f = h5py.File(os.path.join(projdir, 'angles.h5'),'r')
 angles = np.pi*np.squeeze(np.array(f['angles']))/180.0
 f.close()
 ip180 = angles.shape[0]
@@ -67,7 +67,7 @@ pixsize = pixsize_um*1e-6;      # [m]
 pixsize_mm = pixsize_um*1e-3;
 
 # info on projections
-t = tif.TIFF.open(projdir + 'proj_f_' + '%04d' % (1) + '.tif')   # read information
+t = tif.TIFF.open(os.path.join(projdir, 'proj_f_' + '%04d' % (1) + '.tif'))   # read information
 sx = t.GetField("ImageWidth")
 sy = t.GetField("ImageLength")
 blocksize = t.GetField("RowsPerStrip")
@@ -92,7 +92,8 @@ for b in range(nblocks):
     print('Loading projections...')
     t2 = time.time()
     for p in range(ip180):
-        t = tif.TIFF.open(projdir + 'proj_f_%04d' % (p+1) +  '.tif', 'r')
+        t = tif.TIFF.open(os.path.join(projdir,
+            'proj_f_%04d' % (p+1) + '.tif'), 'r')
         bits = t.GetField('BitsPerSample')
         sample_format = t.GetField('SampleFormat')
         typ = t.get_numpy_type(bits, sample_format)
