@@ -52,7 +52,7 @@ pixsize_mm = ReadPixelSize_ParamFile(paramfile);
 [angles,ip180] = ReadAngles_ParamFile(paramfile,h5AnglePath);
 
 %% Path to python scripts
-pythonscript_fullpath = '/home/mattia/Documents/Sinergia/soleil/anatomix_mousebrain/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
+pythonscript_fullpath = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
 
 %% Build a roughly stitched mosaic projection
 projNo = 1;

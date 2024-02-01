@@ -6,7 +6,7 @@ samplename	tissue61
 heightstep	1-9
 
 // location of excel sheet that tells which scans belong to which heights and rings
-infofile	/home/mattia/Documents/Sinergia/soleil/anatomix_mousebrain/MosaicReconstruction/example/param_files/tissue61.xlsx
+infofile	/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/tissue61.xlsx
 
 // where raw scan data is stored (all heights and rings should be in one directory)
 rawdatapath	/media/mattia/TIG_Soleil_Jun2023/Soleil_Jun2023_20221292_kuo2/Projections/
