@@ -9,7 +9,7 @@ heightstep	1-9
 infofile	/home/mattia/Documents/Sinergia/soleil/anatomix_mousebrain/MosaicReconstruction/example/param_files/tissue61.xlsx
 
 // where raw scan data is stored (all heights and rings should be in one directory)
-rawdatapath	/media/bmc/Soleil_2023_Disk2/nxs/
+rawdatapath	/media/mattia/TIG_Soleil_Jun2023/Soleil_Jun2023_20221292_kuo2/Projections/
 
 // h5 paths
 //	You can use HDFView or matlab's h5info to explore .nxs/.h5 file structure
@@ -19,11 +19,11 @@ h5AnglePath	/flyscan_0003/scan_data/tomo1Rz1
 // Paths for writing intermediate and final outputs:
 // 	Note: a sub-directory will be made using the samplename field
 // path for flat/dark corrected, stitched projections
-projpath	/media/bmc/griffin_disk11/anatomix_mousebrain/
+projpath	/mnt/data/anatomix_mousebrain/
 // path for final projections (flat/dark corrected, stitched, filtered, ring corrected)
-projpath2	/media/bmc/griffin_disk11/anatomix_mousebrain/
+projpath2	/DO_NOT_WRITE
 // reco will go in a sub-directory samplename/reco/
-recopath	/media/bmc/tissue61/anatomix_mousebrain/
+recopath	/DO_NOT_WRITE
 
 // Filtering
 // options are "paganin", "gauss", or "none"
