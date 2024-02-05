@@ -85,10 +85,10 @@ text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num
 xlabel('height step'), ylabel('estimated COR position')
 
 %  manually select values to be used for all height steps
-cor = 287;
-s1x = 1759.4;
-s2x = 1759.4;
-s3x = 1759.4;
+cor = 218;
+s1x = 1835.5;
+s2x = 1835.5;
+s3x = 1835.5;
 manstitchpos = [cor,s1x,s2x,s3x];
 autostitchpos = [corpix', olpix'];
 % manstitchpos = [
