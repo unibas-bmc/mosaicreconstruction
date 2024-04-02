@@ -85,22 +85,22 @@ text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num
 xlabel('height step'), ylabel('estimated COR position')
 
 %  manually select values to be used for all height steps
-cor = 287;
-s1x = 1759.4;
-s2x = 1759.4;
-s3x = 1759.4;
-manstitchpos = [cor,s1x,s2x,s3x];
+cor = 295;
+s1x = 1759;
+s2x = 1759;
+s3x = 1759;
+% manstitchpos = [cor,s1x,s2x,s3x];
 autostitchpos = [corpix', olpix'];
-% manstitchpos = [
-%         207.6    1848.3    1844.6    1848.3;  % 1
-%         205.9    1848.3    1848.3    1848.3;  % 2
-%         205.3    1848.6    1848.6    1847.7;  % 3
-%         205.4    1848.1    1848.6    1847.8;  % 4
-%         205.0    1848.3    1848.3    1848.3;  % 5
-%         205.0    1848.5    1846.0    1847.6;  % 6
-%         203.6    1848.3    1848.3    1848.3;  % 7
-%         204.6    1848.3    1848.3    1848.3;  % 8
-%     ];
+manstitchpos = [
+        290    s1x    s2x    s3x;
+        293    s1x    s2x    s3x;
+        295    s1x    s2x    s3x;
+        295    s1x    s2x    s3x;
+        295    s1x    s2x    s3x;
+        292    s1x    s2x    s3x;
+        295    s1x    s2x    s3x;
+        296    s1x    s2x    s3x;
+    ];
 
 % loop over heights, process projections for ycrop, reconstruct
 ycrop = 1017:1032;
@@ -109,22 +109,22 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % note: we do a ring correction here
-roi = [14358,14358];
+roi = [14346,14346];
 recos = zeros(roi(2),roi(1),nhs,'single');
 for h = 1:nhs
     % build projections using above stitch positions for given height step
     if size(manstitchpos, 1) == 1
-        projdir = ProjectionProcessingManualEntry(paramfile,h,...
+        stitched_projdir = ProjectionProcessingManualEntry(paramfile,h,...
             manstitchpos,...
             ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
             'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
     else
-        projdir = ProjectionProcessingManualEntry(paramfile,h,...
+        stitched_projdir = ProjectionProcessingManualEntry(paramfile,h,...
             manstitchpos(h,:),...
             ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
             'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
     end
-    [sinoblock] = LoadCroppedSinoblock(projdir);
+    [sinoblock] = LoadCroppedSinoblock(stitched_projdir);
     % ring correction:
     mproj = mean(sinoblock,3);
     rproj = single(mproj-imgaussfilt(mproj,50,'Padding','symmetric')); 
@@ -143,16 +143,69 @@ if isfile([testdir 'reco_manualoverlap_allhs.h5']); delete([testdir 'reco_manual
 h5create([testdir 'reco_manualoverlap_allhs.h5'],'/reco',size(recos),'Datatype','single')
 h5write([testdir 'reco_manualoverlap_allhs.h5'],'/reco',recos)
 
+
+%% Reconstruct specific slices
+h = 6;
+ycrop = 521:536;
+cor = 292;
+s1x = 1759;
+s2x = 1759;
+s3x = 1759;
+manstitchpos = [cor,s1x,s2x,s3x];
+testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
+if not(isfolder(testdir)); mkdir(testdir); end
+% projection stitching
+stitched_projdir = ProjectionProcessingManualEntry(paramfile,h,...
+            manstitchpos,...
+            ycrop,filterwidth,filtertag,'pixsize_mm',pixsize_mm,...
+            'lambda_mm',lambda_mm,'det_dist_mm',det_dist_mm);
+[sinoblock] = LoadCroppedSinoblock(stitched_projdir);
+% ring correction:
+mproj = mean(sinoblock,3);
+rproj = single(mproj-imgaussfilt(mproj,50,'Padding','symmetric')); 
+rproj(abs(rproj)>0.1) = 0;
+% reconstruct
+sinoblock = sinoblock-rproj;
+% for slicenr = 1:size(sinoblock, 1)
+for slicenr = 8
+    fullsino = squeeze(sinoblock(slicenr,:,:));
+    fullsino = fullsino(5:end-5,:);
+    reco = SingleGridrecReconstruction([testdir ...
+        'reco_man_ycrop_' num2str(h) '_' num2str(slicenr)],fullsino,angles,pixsize_mm,...
+        pythonscript_fullpath);
+    % tiff settings ()
+    tagstruct.ImageLength = size(reco, 1); % y
+    tagstruct.ImageWidth = size(reco, 2); % x
+    tagstruct.BitsPerSample = 32; % single precision
+    tagstruct.SamplesPerPixel = 1;
+    tagstruct.Compression = Tiff.Compression.None;
+    tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
+    tagstruct.Photometric = Tiff.Photometric.MinIsBlack;
+    tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
+    t = Tiff([testdir 'reco_man_ycrop_' num2str(h) ...
+        '_' num2str(slicenr, '%04d') '.tif'], 'w');
+    t.setTag(tagstruct); t.write(reco); t.close();
+end
 %% Tweak overlap positions manually
 % % set up a directory for tests
 testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 1;
-this_ycrop = 1024-7:1024+8;
+this_hs = 6;
+this_ycrop = 256-7:256+8;
 readdir = ProjectionProcessingManualOverlap(paramfile,this_hs,this_ycrop);
 [projvol,mprojvol] = LoadProjectionsManualOverlap(paramfile,this_hs);
+
+% Ring correction
+rproj = zeros(size(mprojvol));
+for i = 1:nrings
+    rproj(:,:,i) = mprojvol(:,:,i) - imgaussfilt(mprojvol(:,:,i), 50., ...
+        'Padding', 'symmetric');
+end
+parfor i = 1:size(projvol, 3)
+    projvol(:,:,i,:) = projvol(:,:,i,:) - rproj;
+end
 
 sliceNo = 9;
 
@@ -163,7 +216,7 @@ for i1 = 1:size(projvol,4)
 end
 
 % % check center of rotation
-corRange = 205.9-8:205.9+8;
+corRange = 295-8:295+8;
 % note: motor position would be cor_guess, found position would be cor_subpix
 padSize = 2000;
 cropSize = [3000,3000];
@@ -296,10 +349,10 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
 %% Tweak any
-cor_range = 205.9;
-s1_range = 1848.3-8:1848.3+8;
-s2_range = 1848.3;
-s3_range = 1848.3;
+cor_range = 295;
+s1_range = 1759;
+s2_range = 1759;
+s3_range = 1759;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
@@ -623,9 +676,9 @@ s1x = 1848.6;
 s2x = 1848.6;
 s3x = 1847.7;
 manstitchposx = [cor,s1x,s2x,s3x];
-projdir = ProjectionProcessingManualEntry(paramfile,this_hs,manstitchposx,...
+stitched_projdir = ProjectionProcessingManualEntry(paramfile,this_hs,manstitchposx,...
         this_ycrop,0,'none');
-[sinoblock] = LoadCroppedSinoblock(projdir);
+[sinoblock] = LoadCroppedSinoblock(stitched_projdir);
 
 % % testing paganin filtering
 test_photonEnergy = photonEnergy; % [keV]

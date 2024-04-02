@@ -6,10 +6,10 @@ samplename	mouse89873_5023
 heightstep	1-8
 
 // location of excel sheet that tells which scans belong to which heights and rings
-infofile	/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/mouse89873_5023.xlsx
+infofile	/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/mouse89873_5023.csv
 
 // where raw scan data is stored (all heights and rings should be in one directory)
-rawdatapath	/media/bmc/Soleil_2023_Disk2/nxs/
+rawdatapath	/media/mattia/Soleil_2023_Disk2/nxs/
 
 // h5 paths
 //	You can use HDFView or matlab's h5info to explore .nxs/.h5 file structure
