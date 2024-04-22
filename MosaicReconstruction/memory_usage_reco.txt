@@ -1,3 +1,0 @@
-virtual memory
-ncore=1	25.8G, 52.6G, 102G, 86.8G and falling, 124G
-ncore=2	52.6G, then 58.8G, then segfaults
