@@ -472,10 +472,10 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-cor = 287;
-s1x = 1759.4;
-s2x = 1759.4;
-s3x = 1759.4;
+cor = 295;
+s1x = 1759;
+s2x = 1759;
+s3x = 1759;
 manstitchposx = [cor,s1x,s2x,s3x];
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
