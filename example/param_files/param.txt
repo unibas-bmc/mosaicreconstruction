@@ -1,15 +1,15 @@
 Name	Value
 // this will be used to name directories where outputs go
-samplename	mouse89873_5023
+samplename	sample123
 
 // for a single height, put one number, for multiple use a dash, i.e. 1-3
-heightstep	1-8
+heightstep	1-3
 
 // location of excel sheet that tells which scans belong to which heights and rings
-infofile	/home/mattia/Documents/Cerebellum22/MosaicReconstruction/example/param_files/mouse89873_5023.csv
+infofile	/path/to/example/param_files/info.csv
 
 // where raw scan data is stored (all heights and rings should be in one directory)
-rawdatapath	/media/mattia/Soleil_2023_Disk2/nxs/
+rawdatapath	/path/to/raw_data/
 
 // h5 paths
 //	You can use HDFView or matlab's h5info to explore .nxs/.h5 file structure
@@ -19,11 +19,11 @@ h5AnglePath	/flyscan_0003/scan_data/tomo1Rz1
 // Paths for writing intermediate and final outputs:
 // 	Note: a sub-directory will be made using the samplename field
 // path for flat/dark corrected, stitched projections
-projpath	/mnt/data/anatomix_mousebrain/
+projpath	/path/to/projections/
 // path for final projections (flat/dark corrected, stitched, filtered, ring corrected)
-projpath2	/DO/NOT/USE/
+projpath2	/path/to/final_proj/
 // reco will go in a sub-directory samplename/reco/
-recopath	/DO/NOT/USE/
+recopath	/path/to/recos/
 
 // Filtering
 // options are "paganin", "gauss", or "none"
