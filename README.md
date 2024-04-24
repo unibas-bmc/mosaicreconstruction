@@ -31,3 +31,66 @@ heightsteps 1 to *m*, starting form the top.
 The scan names are constructed from the `scandir` and the `suffix`,
 e.g. `001_sample123_ring` and `z1_x2` would be combined
 to `001_sample123_ring_z1_x2`.
+
+
+## Param File
+
+The param file (e.g. [example/param_files/param.txt](
+example/param_files/param.txt)) contains configuration
+settings for stitching and reconstruction. These include
+ * sample name
+ * path to the info file
+ * paths to raw and processed data
+ * parameters for Paganin or Gaussian filtering (optional)
+ * scaling of gray values in the reconstructed slices
+
+
+# Main Steps
+
+1. Determine overlap positions for lateral stitching:
+	```
+	OverlapFinderX(paramfile);
+	```
+
+2. Perform lateral stitching (stitched projections are
+	saved in `[projpath "stitched_proj_filtered"]`):
+	```
+	ProjectionProcessing_pass1(paramfile, manstitchposx);
+	```
+
+3. Determine overlap positions for vertical stitching:
+	```
+	OverlapFinderY(paramfile);
+	```
+
+4. Perform vertical stitching (stitched projections are
+	saved in `[projpath2 "proj"]`):
+	```
+	ProjectionProcessing_pass2(paramfile, manstitchposy);
+	```
+
+5. Tomographic reconstruction (reconstructed slices are
+	saved in `[recopath "reco"]`):
+	```
+	python utils/block_reconstruction.py example/param_files/param.txt
+	```
+
+
+## Manual intervention
+
+Especially for large specimens without highly-attenuating structures,
+contrast-to-noise ratio is typically very low in the projections.
+This makes the automated search for overlap positions more
+error-prone, and the need for manual intervention more likely.
+The Matlab script [MosaicReco.m](MosaicReco.m) contains code snippets
+to visually verify and manually optimize stitching and reconstruction
+parameters. It is not intended to be run as a whole, but instead
+divided into sections to be run individually.
+
+
+## Dependencies
+
+Requires the python packages
+[TomoPy](https://tomopy.readthedocs.io),
+[h5py](https://www.h5py.org/), and
+[Tifffile](https://github.com/cgohlke/tifffile/).
