@@ -45,32 +45,38 @@ settings for stitching and reconstruction. These include
  * scaling of gray values in the reconstructed slices
 
 
-# Main Steps
+## Main Steps
 
-1. Determine overlap positions for lateral stitching:
+1. Determine overlap positions for lateral stitching.
+	In Matlab run:
 	```
 	OverlapFinderX(paramfile);
 	```
 
 2. Perform lateral stitching (stitched projections are
-	saved in `[projpath "stitched_proj_filtered"]`):
+	saved in `[projpath "stitched_proj_filtered"]`).
+	Matlab:
 	```
 	ProjectionProcessing_pass1(paramfile, manstitchposx);
 	```
 
-3. Determine overlap positions for vertical stitching:
+3. Determine overlap positions for vertical stitching.
+	Matlab:
 	```
 	OverlapFinderY(paramfile);
 	```
 
 4. Perform vertical stitching (stitched projections are
-	saved in `[projpath2 "proj"]`):
+	saved in `[projpath2 "proj"]`).
+	Matlab:
 	```
-	ProjectionProcessing_pass2(paramfile, manstitchposy);
+	ProjectionProcessing_pass2(paramfile, manstitchposy).
+	Matlab:
 	```
 
 5. Tomographic reconstruction (reconstructed slices are
-	saved in `[recopath "reco"]`):
+	saved in `[recopath "reco"]`).
+	In the shell run:
 	```
 	python utils/block_reconstruction.py example/param_files/param.txt
 	```
