@@ -23,7 +23,6 @@ verboseExtra = 0;    # 1: more information
 ncore = None         # ncore = None to get the default (i.e. 1 core)
 
 ###### Input: Dataset to process
-#paramfile = '/media/griffin/_home1/mosaic_reconstruction/mousebrain/param_files/mouse4_perf_eth_full.txt'
 paramfile = sys.argv[1]
 print('Using ' + paramfile)
 

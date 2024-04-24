@@ -1,7 +1,6 @@
 function [writedir] = OverlapFinderY(paramfile)
 %% Overlap finder
 %% Input: Dataset to process
-%paramfile = './example/param_files/mouse6_perf_eth_full.txt';
 fprintf(['Initializing, loading flats/darks...\n']); tic
 %% 0.1 Toolboxes
 addpath(genpath('./utils'))

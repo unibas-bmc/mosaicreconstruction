@@ -1,6 +1,5 @@
 function [writedir] = ProjectionProcessingManualEntry(paramfile,hs,manstitchpos,ycrop,filterwidth,filtertag,varargin)
 %% Input: Dataset to process
-%paramfile = '/media/griffin/_home1/anatomix_feb2021/stitching_reco/examples/braini_paraffin_reembed_hs8_param.txt';
 %% 0.1 Toolboxes
 addpath(genpath('./utils'))
 %% 0.2 Read param file

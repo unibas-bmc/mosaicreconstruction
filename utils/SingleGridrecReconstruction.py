@@ -17,7 +17,6 @@ method='gridrec'     # 'fbp' takes very long
 iterK = 2;           # number of iterations for iterative methods
 
 ###### inputs: sinogram file
-#sinogramfile = '/media/griffin/griffin_disk7/soleil_feb2021/20200712_mueller_processed/brain4_ethanol/stitching_testrecos/test_sino.h5'
 sinogramfile = sys.argv[1]
 print('Using ' + sinogramfile)
 
