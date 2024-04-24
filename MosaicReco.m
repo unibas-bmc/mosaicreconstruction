@@ -1,4 +1,4 @@
-%% Mosaic reconstruction for EAE mice
+%% Mosaic reconstruction
 
 %% Toolboxes
 addpath(genpath('./utils'))
