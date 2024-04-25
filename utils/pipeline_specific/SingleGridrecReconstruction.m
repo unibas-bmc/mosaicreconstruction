@@ -1,4 +1,4 @@
-function [reco] = SingleGridrecReconstruction(name,sino,angles,pixsize_mm,pythonscript_fullpath)
+function [reco] = SingleGridrecReconstruction(name,sino,angles,pixsize_mm,python_path)
 %single_gridrec_reconstruction Reconstructs a single sinogram using gridrec
 %   This function calls a python script to do the reconstruction
 %   Inputs:
@@ -7,7 +7,7 @@ function [reco] = SingleGridrecReconstruction(name,sino,angles,pixsize_mm,python
 %       sino - sinogram dimensions should be (x,theta). COR is middle.
 %       angles - list of angles, should be in degrees
 %       pixsize_mm - pixel size in mm
-%       pythonscript_fullpath - full path to your python script "SingleGridrecReconstruction.py"
+%       python_path - path to python interpreter
 
 fprintf('Running gridrec reconstruction...\n')
 
@@ -31,11 +31,13 @@ h5write([name '.h5'],'/sino',sino)
 h5write([name '.h5'],'/angles',angles)
 h5write([name '.h5'],'/pixsize_mm',pixsize_mm)
 
-CMD=sprintf('python %s %s',...
-    [pythonscript_fullpath],...
+python_reco_script = 'utils/SingleGridrecReconstruction.py';
+CMD=sprintf('%s %s %s',...
+    python_path,...
+    python_reco_script,...
     [name '.h5']);
 
-[status,result]=system(CMD);
+[~,result]=system(CMD);
 
 fprintf(result)
 

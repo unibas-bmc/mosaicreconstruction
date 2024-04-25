@@ -60,3 +60,7 @@ verboseMode	1
 // image format to use for projections and reconstructed slices
 // "tiff" or "hdf5"
 imagefmt	tiff
+
+// path to python interpreter, e.g. /usr/bin/python
+// or /home/user/conda/bin/python
+pythonPath	/usr/bin/python
