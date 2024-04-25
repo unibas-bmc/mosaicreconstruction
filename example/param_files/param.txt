@@ -6,7 +6,7 @@ samplename	sample123
 heightstep	1-3
 
 // location of excel sheet that tells which scans belong to which heights and rings
-infofile	/path/to/example/param_files/info.csv
+infofile	example/param_files/info.csv
 
 // where raw scan data is stored (all heights and rings should be in one directory)
 rawdatapath	/path/to/raw_data/
