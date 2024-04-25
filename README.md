@@ -97,6 +97,8 @@ divided into sections to be run individually.
 ## Dependencies
 
 Requires the python packages
+[NumPy](https://numpy.org/),
+[pandas](https://pandas.pydata.org/),
 [TomoPy](https://tomopy.readthedocs.io),
 [h5py](https://www.h5py.org/), and
 [Tifffile](https://github.com/cgohlke/tifffile/).
