@@ -2,7 +2,6 @@
 
 #import code       # for debugging, breakpoint with code.interact(local=locals())
 import tomopy
-import pylab
 import time
 import h5py
 import numpy as np
