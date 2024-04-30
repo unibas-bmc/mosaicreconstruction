@@ -71,7 +71,6 @@ settings for stitching and reconstruction. These include
 	Matlab:
 	```
 	ProjectionProcessing_pass2(paramfile, manstitchposy).
-	Matlab:
 	```
 
 5. Tomographic reconstruction (reconstructed slices are
