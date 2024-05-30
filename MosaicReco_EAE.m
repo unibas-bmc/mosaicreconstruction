@@ -186,14 +186,16 @@ for slicenr = 8
         '_' num2str(slicenr, '%04d') '.tif'], 'w');
     t.setTag(tagstruct); t.write(reco); t.close();
 end
-%% Tweak overlap positions manually
+%% Load projection strip for tweaking overlap positions
 % % set up a directory for tests
 testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 6;
-this_ycrop = 256-7:256+8;
+this_hs = 4;
+center_slice = 1024;
+nslices = 16;
+this_ycrop = center_slice-floor(nslices/2)+1:center_slice+nslices-floor(nslices/2);
 readdir = ProjectionProcessingManualOverlap(paramfile,this_hs,this_ycrop);
 [projvol,mprojvol] = LoadProjectionsManualOverlap(paramfile,this_hs);
 
@@ -204,16 +206,18 @@ for i = 1:nrings
         'Padding', 'symmetric');
 end
 parfor i = 1:size(projvol, 3)
-    projvol(:,:,i,:) = projvol(:,:,i,:) - rproj;
+    projvol(:,:,i,:) = squeeze(projvol(:,:,i,:)) - rproj;
 end
 
-sliceNo = 9;
+sliceNo = 8;
 
 % % Paganin filter projections
 projvol_pag = projvol;
 for i1 = 1:size(projvol,4)
     projvol_pag(:,:,:,i1) = filtfunc(projvol(:,:,:,i1));
 end
+
+%% Tweak overlap positions manually
 
 % % check center of rotation
 corRange = 295-8:295+8;
@@ -350,7 +354,7 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
 
 %% Tweak any
 cor_range = 295;
-s1_range = 1759;
+s1_range = 1759-4:1759+4;
 s2_range = 1759;
 s3_range = 1759;
 
