@@ -13,7 +13,7 @@ prepimage = @(im,vr) uint8(255*(double(im)-vr(1))/(vr(2)-vr(1)));
 prepimagei16 = @(im,vr) uint16((2^16-1)*(double(im)-vr(1))/(vr(2)-vr(1)));
 
 %% Param file
-paramfile = './example/param_files/mouse89873_5023.txt';
+paramfile = './example/param_files/mouse89043_6223.txt';
 
 %% Read a few useful variables from the param file
 fid = fopen(paramfile);
@@ -52,7 +52,7 @@ pixsize_mm = ReadPixelSize_ParamFile(paramfile);
 [angles,ip180] = ReadAngles_ParamFile(paramfile,h5AnglePath);
 
 %% Path to python scripts
-pythonscript_fullpath = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
+pythonscript_fullpath = './utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
 
 %% Build a roughly stitched mosaic projection
 projNo = 1;
@@ -186,14 +186,16 @@ for slicenr = 8
         '_' num2str(slicenr, '%04d') '.tif'], 'w');
     t.setTag(tagstruct); t.write(reco); t.close();
 end
-%% Tweak overlap positions manually
+%% Load projection strip for tweaking overlap positions
 % % set up a directory for tests
 testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 6;
-this_ycrop = 256-7:256+8;
+this_hs = 4;
+center_slice = 1024;
+nslices = 16;
+this_ycrop = center_slice-floor(nslices/2)+1:center_slice+nslices-floor(nslices/2);
 readdir = ProjectionProcessingManualOverlap(paramfile,this_hs,this_ycrop);
 [projvol,mprojvol] = LoadProjectionsManualOverlap(paramfile,this_hs);
 
@@ -204,16 +206,18 @@ for i = 1:nrings
         'Padding', 'symmetric');
 end
 parfor i = 1:size(projvol, 3)
-    projvol(:,:,i,:) = projvol(:,:,i,:) - rproj;
+    projvol(:,:,i,:) = squeeze(projvol(:,:,i,:)) - rproj;
 end
 
-sliceNo = 9;
+sliceNo = 8;
 
 % % Paganin filter projections
 projvol_pag = projvol;
 for i1 = 1:size(projvol,4)
     projvol_pag(:,:,:,i1) = filtfunc(projvol(:,:,:,i1));
 end
+
+%% Tweak overlap positions manually
 
 % % check center of rotation
 corRange = 295-8:295+8;
@@ -350,7 +354,7 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
 
 %% Tweak any
 cor_range = 295;
-s1_range = 1759;
+s1_range = 1759-4:1759+4;
 s2_range = 1759;
 s3_range = 1759;
 
