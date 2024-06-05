@@ -52,7 +52,7 @@ pixsize_mm = ReadPixelSize_ParamFile(paramfile);
 [angles,ip180] = ReadAngles_ParamFile(paramfile,h5AnglePath);
 
 %% Path to python scripts
-pythonscript_fullpath = '/home/mattia/Documents/Cerebellum22/MosaicReconstruction/utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
+pythonscript_fullpath = './utils/SingleGridrecReconstruction.py'; % full path to your python script "SingleGridrecReconstruction.py"
 
 %% Build a roughly stitched mosaic projection
 projNo = 1;
@@ -143,13 +143,13 @@ if isfile([testdir 'reco_manualoverlap_allhs.h5']); delete([testdir 'reco_manual
 h5create([testdir 'reco_manualoverlap_allhs.h5'],'/reco',size(recos),'Datatype','single')
 h5write([testdir 'reco_manualoverlap_allhs.h5'],'/reco',recos)
 
-%% Tweak overlap positions manually
+%% Load couple of slices for tweaking overlap positions manually
 % % set up a directory for tests
 testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 1;
+this_hs = 5;
 this_ycrop = 1024-7:1024+8;
 readdir = ProjectionProcessingManualOverlap(paramfile,this_hs,this_ycrop);
 [projvol,mprojvol] = LoadProjectionsManualOverlap(paramfile,this_hs);
@@ -162,7 +162,7 @@ for i1 = 1:size(projvol,4)
     projvol_pag(:,:,:,i1) = filtfunc(projvol(:,:,:,i1));
 end
 
-% % check center of rotation
+%% check center of rotation
 corRange = 205.9-8:205.9+8;
 % note: motor position would be cor_guess, found position would be cor_subpix
 padSize = 2000;
@@ -296,10 +296,10 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
 %% Tweak any
-cor_range = 205.9;
-s1_range = 1848.3-8:1848.3+8;
-s2_range = 1848.3;
-s3_range = 1848.3;
+cor_range = 218;
+s1_range = 1835-8:1835+8;
+s2_range = 1835;
+s3_range = 1835;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
@@ -394,6 +394,9 @@ gsrange = [-0.01,0.05];
 
 figure, imshow3D(squeeze(recos_crop),gsrange)
 
+h5create([testdir 'recos_crop.h5'], '/reco', size(squeeze(recos_crop)), 'Datatype', 'single');
+h5write([testdir 'recos_crop.h5'], '/reco', squeeze(recos_crop));
+
 cent = [0,0];
 rad = [2048-cor_range(1)/2,2048-cor_range(1)/2+s1_range(1),...
     2048-cor_range(1)/2+s1_range(1)+s2_range(1)];
@@ -419,11 +422,21 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-cor = 287;
-s1x = 1759.4;
-s2x = 1759.4;
-s3x = 1759.4;
-manstitchposx = [cor,s1x,s2x,s3x];
+cor = 218;
+s1x = 1835;
+s2x = 1835;
+s3x = 1835;
+manstitchposx = [cor, s1x, s2x, s3x];
+% manstitchposx = [
+%         cor,s1x,s2x,s3x; % 1
+%         cor,s1x,s2x,s3x; % 2
+%         cor,s1x,s2x,s3x; % 3
+%         cor,s1x,s2x,s3x; % 4
+%         cor,s1x,s2x,s3x; % 5
+%         cor,s1x,s2x,s3x; % 6
+%         cor,s1x,s2x,s3x; % 7
+%         cor,s1x,s2x,s3x; % 8
+%     ];
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
 %% Automatically find height step stitching positions (all height steps)
@@ -689,7 +702,7 @@ h5write([projsavedir 'angles.h5'], '/angles', single(angles));
 %   - (optional) ring correction -- in this case lines 92-97
 %   - (optional) filtering
 
-manstitchposy = [1838.25,1838.75,1835.75,1834.8,1832.75,1834.75];
+manstitchposy = [1833.25,1836,1836,1835.25,1833.25,1834,1835,1834.75];
 projsavedir = ProjectionProcessing_pass2(paramfile,manstitchposy);
 
 %% Decide output scaling and cropping
