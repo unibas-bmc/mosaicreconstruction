@@ -85,22 +85,22 @@ text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num
 xlabel('height step'), ylabel('estimated COR position')
 
 %  manually select values to be used for all height steps
-cor = 295;
-s1x = 1759;
-s2x = 1759;
-s3x = 1759;
-% manstitchpos = [cor,s1x,s2x,s3x];
+cor = 221;
+s1x = 1835.5;
+s2x = 1835.5;
+s3x = 1835.5;
+manstitchpos = [cor,s1x,s2x,s3x];
 autostitchpos = [corpix', olpix'];
-manstitchpos = [
-        290    s1x    s2x    s3x;
-        293    s1x    s2x    s3x;
-        295    s1x    s2x    s3x;
-        295    s1x    s2x    s3x;
-        295    s1x    s2x    s3x;
-        292    s1x    s2x    s3x;
-        295    s1x    s2x    s3x;
-        296    s1x    s2x    s3x;
-    ];
+% manstitchpos = [
+%         290    s1x    s2x    s3x;
+%         293    s1x    s2x    s3x;
+%         295    s1x    s2x    s3x;
+%         295    s1x    s2x    s3x;
+%         295    s1x    s2x    s3x;
+%         292    s1x    s2x    s3x;
+%         295    s1x    s2x    s3x;
+%         296    s1x    s2x    s3x;
+%     ];
 
 % loop over heights, process projections for ycrop, reconstruct
 ycrop = 1017:1032;
@@ -192,7 +192,7 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 4;
+this_hs = 1;
 center_slice = 1024;
 nslices = 16;
 this_ycrop = center_slice-floor(nslices/2)+1:center_slice+nslices-floor(nslices/2);
@@ -353,15 +353,16 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
 %% Tweak any
-cor_range = 295;
-s1_range = 1759-4:1759+4;
-s2_range = 1759;
-s3_range = 1759;
+cor_range = 221-8:221+8;
+s1_range = 1835.5;
+s2_range = 1835.5;
+s3_range = 1835.5;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
 padSize = 0;
-cropSize = [14000,14000];
+% cropSize = [14000,14000];
+cropSize = [2048,2048];
 recos_crop = zeros(cropSize(2),cropSize(1),length(cor_range),length(s1_range),...
     length(s2_range),length(s3_range),'single');
 for i1 = 1:length(cor_range)
@@ -476,11 +477,21 @@ rectangle('Position',[cent(1)-rad(3),cent(2)-rad(3),rad(3)*2,rad(3)*2],'Curvatur
 %       a different ring correction is made
 % Note: current implementation assumes all hs have same x- stitch positions
 %   it would be fairly easy input a matrix of values as well
-cor = 295;
-s1x = 1759;
-s2x = 1759;
-s3x = 1759;
-manstitchposx = [cor,s1x,s2x,s3x];
+cor = 221;
+s1x = 1835.5;
+s2x = 1835.5;
+s3x = 1835.5;
+% manstitchposx = [cor,s1x,s2x,s3x];
+manstitchposx = [
+        cor    s1x    s2x    s3x;
+        cor    s1x    s2x    s3x;
+        222    s1x    s2x    s3x;
+        cor    s1x    s2x    s3x;
+        cor    s1x    s2x    s3x;
+        cor    s1x    s2x    s3x;
+        cor    s1x    s2x    s3x;
+        cor    s1x    s2x    s3x;
+    ];
 projsavedir = ProjectionProcessing_pass1(paramfile,manstitchposx);
 
 %% Automatically find height step stitching positions (all height steps)
