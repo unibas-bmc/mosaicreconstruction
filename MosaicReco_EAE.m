@@ -13,7 +13,7 @@ prepimage = @(im,vr) uint8(255*(double(im)-vr(1))/(vr(2)-vr(1)));
 prepimagei16 = @(im,vr) uint16((2^16-1)*(double(im)-vr(1))/(vr(2)-vr(1)));
 
 %% Param file
-paramfile = './example/param_files/mouse89043_6223.txt';
+paramfile = './example/param_files/mouse89875_5323.txt';
 
 %% Read a few useful variables from the param file
 fid = fopen(paramfile);
@@ -85,22 +85,22 @@ text(a.XLim(1)+diff(a.XLim)/30,nanmedian(corpix)-diff(a.YLim)/30,['median: ' num
 xlabel('height step'), ylabel('estimated COR position')
 
 %  manually select values to be used for all height steps
-cor = 221;
-s1x = 1835.5;
-s2x = 1835.5;
-s3x = 1835.5;
-manstitchpos = [cor,s1x,s2x,s3x];
+cor = 287;
+s1x = 1759;
+s2x = 1759;
+s3x = 1759;
+% manstitchpos = [cor,s1x,s2x,s3x];
 autostitchpos = [corpix', olpix'];
-% manstitchpos = [
-%         290    s1x    s2x    s3x;
-%         293    s1x    s2x    s3x;
-%         295    s1x    s2x    s3x;
-%         295    s1x    s2x    s3x;
-%         295    s1x    s2x    s3x;
-%         292    s1x    s2x    s3x;
-%         295    s1x    s2x    s3x;
-%         296    s1x    s2x    s3x;
-%     ];
+manstitchpos = [
+        284    s1x    s2x    s3x;
+        287    s1x    s2x    s3x;
+        288    s1x    s2x    s3x;
+        289    s1x    s2x    s3x;
+        287    s1x    s2x    s3x;
+        286    s1x    s2x    s3x;
+        288    s1x    s2x    s3x;
+        % 296    s1x    s2x    s3x; % mouse89875_5323 has only 7 hs
+    ];
 
 % loop over heights, process projections for ycrop, reconstruct
 ycrop = 1017:1032;
@@ -192,7 +192,7 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 1;
+this_hs = 3;
 center_slice = 1024;
 nslices = 16;
 this_ycrop = center_slice-floor(nslices/2)+1:center_slice+nslices-floor(nslices/2);
