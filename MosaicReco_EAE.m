@@ -192,7 +192,7 @@ testdir = [projdir samplename filesep 'stitchpos_tests' filesep];
 if not(isfolder(testdir)); mkdir(testdir); end
 
 % % generates a stack of cropped projections before stitching
-this_hs = 3;
+this_hs = 4;
 center_slice = 1024;
 nslices = 16;
 this_ycrop = center_slice-floor(nslices/2)+1:center_slice+nslices-floor(nslices/2);
@@ -353,16 +353,16 @@ rectangle('Position',[cent(1)-rad,cent(2)-rad,rad*2,rad*2],'Curvature',[1,1],...
     'EdgeColor','r')
 
 %% Tweak any
-cor_range = 221-8:221+8;
-s1_range = 1835.5;
-s2_range = 1835.5;
-s3_range = 1835.5;
+cor_range = 289;
+s1_range = 1759;
+s2_range = 1759;
+s3_range = 1759-8:1759+8;
 
 min_size = ceil(2048+max([0,cumsum([min(s1_range),min(s2_range),min(s2_range)])]))*2-ceil(min(cor_range));
 
 padSize = 0;
-% cropSize = [14000,14000];
-cropSize = [2048,2048];
+cropSize = [14000,14000];
+% cropSize = [2048,2048];
 recos_crop = zeros(cropSize(2),cropSize(1),length(cor_range),length(s1_range),...
     length(s2_range),length(s3_range),'single');
 for i1 = 1:length(cor_range)
